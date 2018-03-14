@@ -2,8 +2,8 @@
 
 import os
 
-NUM_ROWS = 8
 NUM_COLS = 8
+NUM_ROWS = 8
 
 class Board:
     '''This represents the board in the game world'''
@@ -24,7 +24,7 @@ class Board:
         splitInput = boardStr.split()
         for rowIndex in range(NUM_ROWS):
             for colIndex in range(NUM_COLS):
-                newBoard[(rowIndex, colIndex)] = splitInput[rowIndex * NUM_ROWS + colIndex]
+                newBoard[(colIndex, rowIndex)] = splitInput[rowIndex * NUM_ROWS + colIndex]
 
         return newBoard, splitInput[-1]
 
@@ -33,7 +33,7 @@ class Board:
         '''Prints the board'''
         for rowIndex in range(NUM_ROWS):
             for colIndex in range(NUM_COLS):
-                print(self.board[(rowIndex, colIndex)], end=' ')
+                print(self.board[(colIndex, rowIndex)], end=' ')
 
             print('')
 
