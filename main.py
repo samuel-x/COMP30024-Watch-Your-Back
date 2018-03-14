@@ -2,8 +2,11 @@
 
 import os
 
+NUM_ROWS = 8
+NUM_COLS = 8
+
 class Board:
-	'''This represents the board in the game world!'''
+	'''This represents the board in the game world'''
 
 	# Board structure
 	board = {}
@@ -15,36 +18,25 @@ class Board:
 		self.board, self.moveType = self.parseBoard(board)
 
 	def parseBoard(self, boardStr):
-		'''This parses the input into a dictionary for processing. 
-		Also returns the type of move.'''
+		'''Given a string specifying the board layout, converts into a dictionary data structure
+		we can more easily use. Also returns the type of operation required.'''
 		newBoard = {}
-		boardType = ''
-		row = 0
-		col = 0
+		splitInput = boardStr.split()
+		for rowIndex in range(NUM_ROWS):
+			for colIndex in range(NUM_COLS):
+				newBoard[(rowIndex, colIndex)] = splitInput[rowIndex * NUM_ROWS + colIndex]
 
-		for coordinate in boardStr.split():
-			if row == 8:
-				boardType = coordinate
-				break
-
-			#print("Parsing: " + coordinate + " at " + str((col,row)))
-			newBoard[(col,row)] = coordinate
-			col += 1
-			if col == 8:
-				row += 1
-				col = 0
-				continue
-
-		return newBoard, boardType
+		return newBoard, splitInput[-1]
 
 
 	def printBoard(self):
-		'''Prints the board!'''
-		for coords, values in self.board.items():
-			print(values, end=' ')
-			if coords[0] == 7:
-				print('\n')
-		return
+		'''Prints the board'''
+		flatArray = []
+		for rowIndex in range(NUM_ROWS):
+			for colIndex in range(NUM_COLS):
+				print(self.board[(rowIndex, colIndex)], end=' ')
+
+			print('')
 
 	def printBoardType(self):
 		'''Prints the type of move'''
