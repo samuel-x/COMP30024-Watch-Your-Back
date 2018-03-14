@@ -31,7 +31,6 @@ class Board:
 
 	def printBoard(self):
 		'''Prints the board'''
-		flatArray = []
 		for rowIndex in range(NUM_ROWS):
 			for colIndex in range(NUM_COLS):
 				print(self.board[(rowIndex, colIndex)], end=' ')
