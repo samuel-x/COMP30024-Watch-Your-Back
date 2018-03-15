@@ -2,53 +2,44 @@
 
 import os
 
+NUM_COLS = 8
+NUM_ROWS = 8
+
 class Board:
-	'''This represents the board in the game world!'''
+    '''This represents the board in the game world'''
 
-	# Board structure
-	board = {}
-	# Move Type
-	moveType = ''
-
-
-	def __init__(self, board):
-		self.board, self.moveType = self.parseBoard(board)
-
-	def parseBoard(self, boardStr):
-		'''This parses the input into a dictionary for processing. 
-		Also returns the type of move.'''
-		newBoard = {}
-		boardType = ''
-		row = 0
-		col = 0
-
-		for coordinate in boardStr.split():
-			if row == 8:
-				boardType = coordinate
-				break
-
-			#print("Parsing: " + coordinate + " at " + str((col,row)))
-			newBoard[(col,row)] = coordinate
-			col += 1
-			if col == 8:
-				row += 1
-				col = 0
-				continue
-
-		return newBoard, boardType
+    # Board structure
+    board = {}
+    # Move Type
+    moveType = ''
 
 
-	def printBoard(self):
-		'''Prints the board!'''
-		for coords, values in self.board.items():
-			print(values, end=' ')
-			if coords[0] == 7:
-				print('\n')
-		return
+    def __init__(self, board):
+        self.board, self.moveType = self.parseBoard(board)
 
-	def printBoardType(self):
-		'''Prints the type of move'''
-		print(self.moveType)
+    def parseBoard(self, boardStr):
+        '''Given a string specifying the board layout, converts into a dictionary data structure
+        we can more easily use. Also returns the type of operation required.'''
+        newBoard = {}
+        splitInput = boardStr.split()
+        for rowIndex in range(NUM_ROWS):
+            for colIndex in range(NUM_COLS):
+                newBoard[(colIndex, rowIndex)] = splitInput[rowIndex * NUM_ROWS + colIndex]
+
+        return newBoard, splitInput[-1]
+
+
+    def printBoard(self):
+        '''Prints the board'''
+        for rowIndex in range(NUM_ROWS):
+            for colIndex in range(NUM_COLS):
+                print(self.board[(colIndex, rowIndex)], end=' ')
+
+            print('')
+
+    def printBoardType(self):
+        '''Prints the type of move'''
+        print(self.moveType)
 
 
 # Testing 
