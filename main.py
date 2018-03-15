@@ -104,10 +104,13 @@ class Board:
 
     def printAllValidMoves(self, pieceType):
         pieces = self.getAllValidMoves(pieceType)
+        moves = 0
         for piece in pieces:
             currentPos = piece.getPos()
             for newPos in piece.getValidMoves():
+                moves += 1
                 print(currentPos, "->", newPos)
+        print("Total Possible Moves:", moves)
 
 
 
@@ -140,7 +143,7 @@ class Piece:
 
 
 # Testing 
-boardStr = """
+boardStr1 = """
 X - - - O O - X
 - - - O - O O -
 O - O - - - - @
@@ -151,7 +154,21 @@ O O O - - @ @ -
 X - - - - - - X
 Moves
 """
-board = Board(boardStr)
+
+# The following should return 16 moves for the 'O' player
+# and 13 moves for the '@' player
+boardStr2 = """
+X - - - - - - X
+- - - - - - - -
+- - - - - O O -
+- - - - @ O - -
+- - - - - - - -
+- - - - - O - -
+- - - - @ - @ @
+X - - - - - - X
+Moves
+"""
+board = Board(boardStr2)
 board.printBoard()
 board.printBoardType()
 
@@ -163,6 +180,8 @@ board.printBoardType()
 # print(board.getValidMoves(piece))
 print("Printing all possible moves for \'O\' pieces...")
 print(board.printAllValidMoves("O"))
+print("Printing all possible moves for \'@\' pieces...")
+print(board.printAllValidMoves("@"))
 print("Completed!")
 
 
