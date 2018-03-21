@@ -1,0 +1,32 @@
+train(Node root, int seconds):
+	endTime = Clock.now() + seconds
+	while (Clock.now < endTime):
+		startNode = select(root, root.numSimulations)
+		simulate(startNode)
+
+select(Node root, int Ni):
+	nodes = root.children()
+	deltas = root.board.getMoves(root.pos)
+	for node in nodes:
+		deltas.remove(node.delta)
+
+	scores = []
+	for node in nodes:
+		scores.append((node, UCB1(node.wins, nodes.numSimulations, Ni)))
+
+	highestNode = max(scores, key=lambda x: x[1])
+
+	if (highestNode[1] > NEW_NODE_CONST=1):
+		return highestNode[0]
+	else:
+		randomDelta = random(deltas)
+		return Node(randomDelta)
+
+	
+	
+
+UCB1(wi, ni, Ni):
+	return wi/ni + c * sqrt(logn(Ni)/ni)
+
+simulate(Node root):
+	
