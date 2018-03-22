@@ -1,6 +1,5 @@
-from src.Classes.Node import Node
-from src.Enums.SquareState import SquareState
-from src.Misc.Utilities import Utilities as Utils
+from Classes.Node import Node
+from Misc.Utilities import Utilities as Utils
 
 # This will be the file to run the program.
 node = Node("node", "board", "delta")

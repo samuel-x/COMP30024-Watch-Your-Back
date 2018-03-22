@@ -1,3 +1,8 @@
+from typing import List
+
+from Classes.Square import Square
+
+
 class Delta():
     """
     A more abstract class. It contains information regarding a move made. An before-board and an appropriate delta
@@ -12,5 +17,5 @@ class Delta():
     enemy pieces, the square that the piece ended up on i.e. moveTarget will be included in .killedSquares.
     """
 
-    def __init__(self):
+    def __init__(self, move_origin: Square, move_target: Square, killed_squares: List[Square]):
         pass
