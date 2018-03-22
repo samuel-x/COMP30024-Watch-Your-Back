@@ -1,32 +1,51 @@
 train(Node root, int seconds):
-	endTime = Clock.now() + seconds
-	while (Clock.now < endTime):
-		startNode = select(root, root.numSimulations)
-		simulate(startNode)
+    endTime = Clock.now() + seconds
+    while (Clock.now < endTime):
+        startNode = select(root, root.numSimulations)
+        simulate(startNode)
 
-select(Node root, int Ni):
-	nodes = root.children()
-	deltas = root.board.getMoves(root.pos)
-	for node in nodes:
-		deltas.remove(node.delta)
+select(Node parent, int Ni):
+    if (parent.board.phase == GamePhase.FINISHED):
+        parent.backPropagate(parent.board.winner)
 
-	scores = []
-	for node in nodes:
-		scores.append((node, UCB1(node.wins, nodes.numSimulations, Ni)))
+    nodes = parent.children()
+    deltas = parent.board.getMoves(parent.pos)
 
-	highestNode = max(scores, key=lambda x: x[1])
+    if (len(nodes) > 0):
+        for node in nodes:
+            deltas.remove(node.delta)
+            # Continue down the if there are nodes -> Do this, else -> do this
 
-	if (highestNode[1] > NEW_NODE_CONST=1):
-		return highestNode[0]
-	else:
-		randomDelta = random(deltas)
-		return Node(randomDelta)
+    scores = []
+    for node in nodes:
+        scores.append((node, UCB1(node.wins, nodes.numSimulations, Ni)))
 
-	
-	
+    if (len(scores) == 0):  
+        
+
+    highestNode = max(scores, key=lambda x: x[1])
+
+    if (highestNode[1] > NEW_NODE_CONST=UCB(1, 2, Ni)):
+        return highestNode[0]
+    else:
+        randomDelta = random(deltas)
+        return Node(randomDelta)
+
 
 UCB1(wi, ni, Ni):
-	return wi/ni + c * sqrt(logn(Ni)/ni)
+    return wi/ni + c * sqrt(logn(Ni)/ni)
+
 
 simulate(Node root):
-	
+    
+
+Node.backPropagate(self, String winner):
+    self.timesExplored += 1
+
+    if (self.board.winner == winner):
+        self.wins += 1
+
+    if (self.parent != None):
+        self.parent.backPropagate(winner)
+    else:
+        return
