@@ -1,3 +1,5 @@
 - Player ENUM e.g. Player.BLACK
 - Leaf nodes that result in wins or losses need to not propogate additional wins.
 - Games eventually lead to draws due to the PUBG mechanic. How to handle draws?
+	One shrinkage after move 128.
+	Another after turn 196.

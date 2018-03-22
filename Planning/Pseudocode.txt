@@ -1,51 +1,56 @@
 train(Node root, int seconds):
     endTime = Clock.now() + seconds
     while (Clock.now < endTime):
-        startNode = select(root, root.numSimulations)
-        simulate(startNode)
+        simulate(root)
 
-select(Node parent, int Ni):
-    if (parent.board.phase == GamePhase.FINISHED):
-        parent.backPropagate(parent.board.winner)
-
+select(Node node, int Ni):
+    scores = []
+    unexploredNodesScore = UCB1(1, 2, Ni)
     nodes = parent.children()
-    deltas = parent.board.getMoves(parent.pos)
+    deltas = node.board.getMoves(node.pos)
 
     if (len(nodes) > 0):
         for node in nodes:
             deltas.remove(node.delta)
-            # Continue down the if there are nodes -> Do this, else -> do this
+            scores.append((node, UCB1(node.wins, nodes.numSimulations, Ni)))        
 
-    scores = []
-    for node in nodes:
-        scores.append((node, UCB1(node.wins, nodes.numSimulations, Ni)))
+        sortedScores = sorted(scores, key=lambda x:x[1], reverse=True)
+        for childNode, score in sortedScores:
+            if (score > exploredNodesScore):
+                # This is to avoid re-exploring a leaf node that resulted in a win or loss. We want to explore new options. Otherwise we'd have wasted this simulation or backpropagated the same result twice.
+                if (childNode.board.phase == GamePhase.FINISHED):
+                    continue
+                else:
+                    return childNode
+            else:
+                break
 
-    if (len(scores) == 0):  
-        
-
-    highestNode = max(scores, key=lambda x: x[1])
-
-    if (highestNode[1] > NEW_NODE_CONST=UCB(1, 2, Ni)):
-        return highestNode[0]
-    else:
-        randomDelta = random(deltas)
-        return Node(randomDelta)
+    randomDelta = random(deltas)
+    return Node(node, getNextBoard(board, randomDelta), randomDelta)
 
 
 UCB1(wi, ni, Ni):
-    return wi/ni + c * sqrt(logn(Ni)/ni)
+    return wi/ni + C * sqrt(logn(Ni)/ni)
 
 
 simulate(Node root):
+
+    leaf = select(root, root.numSimulations)
+    while(leaf.board.phase != GamePhase.FINISHED):
+        leaf = select(leaf, root.numSimulations)
+
+    backpropogate(leaf, leaf.board.winner)
     
+backPropagate(node, winner):
+    # Can be done recursively, but no point in using a stack. Iteratively
+    # is more memory efficient.
 
-Node.backPropagate(self, String winner):
-    self.timesExplored += 1
+    while(node != None):
+        node.timesExplored += 1
 
-    if (self.board.winner == winner):
-        self.wins += 1
+        if (node.board.winner == winner):
+            node.wins += 1
+        else if (node.board.winner == None):
+            node.wins += 0.5 # Must have been a tie
 
-    if (self.parent != None):
-        self.parent.backPropagate(winner)
-    else:
-        return
+        node = node.parent
