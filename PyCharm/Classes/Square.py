@@ -21,3 +21,9 @@ class Square():
         self.pos = pos
         self.occupant = occupant
         self.state = state
+
+    def __eq__(self, other: 'Square'):
+        if (not isinstance(self, Square)):
+            return not isinstance(other, Square)
+
+        return (self.pos, self.occupant, self.state) == (other.pos, other.occupant, other.state) if isinstance(other, Square) else False #TODO This is ugly

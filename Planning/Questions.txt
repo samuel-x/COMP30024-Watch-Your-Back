@@ -1,5 +1,10 @@
-- Player ENUM e.g. Player.BLACK
 - Leaf nodes that result in wins or losses need to not propogate additional wins.
 - Games eventually lead to draws due to the PUBG mechanic. How to handle draws?
 	One shrinkage after move 128.
-	Another after turn 196.
+	Another after move 196.
+
+- Look at python picke module for possibly serializing and deserializing the MCTS tree.
+	https://docs.python.org/3.6/library/pickle.html#module-pickle
+
+- Look after scenarios where we have the delta and need a reference to the play maker and we did 
+	that using delta.move_origin.occupant.owner. Replace that with the new delta.player.

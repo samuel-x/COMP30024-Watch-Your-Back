@@ -9,5 +9,8 @@ class Piece():
 
     owner: Player
 
-    def __init__(self):
-        pass
+    def __init__(self, owner: Player):
+        self.owner = owner
+
+    def __eq__(self, other: 'Piece'):
+        return self.owner == other.owner
