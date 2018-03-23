@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 from Classes.Delta import Delta
 from Classes.Piece import Piece
@@ -14,11 +14,14 @@ class Board():
     """
     A structure that represents the board at a given point.
     """
-    # TODO Move these into Utilities?
-    _TOP_LEFT = "top left"
-    _TOP_RIGHT = "top right"
-    _BOTTOM_LEFT = "bottom left"
-    _BOTTOM_RIGHT = "bottom right"
+    # TODO Move these into Utilities? Elsewhere?
+    _TOP_LEFT: str = "top left"
+    _TOP_RIGHT: str = "top right"
+    _BOTTOM_LEFT: str = "bottom left"
+    _BOTTOM_RIGHT: str = "bottom right"
+    _HORIZONTAL: str = "horizontal"
+    _VERTICAL: str = "vertical"
+    _OMNI: str = "omnidirectional" # TODO Better name?
     _NUM_COLS: int = 8
     _NUM_ROWS: int = 8
     # TODO: Better way to specify placement zone?
@@ -37,7 +40,7 @@ class Board():
     # Equals None while the game isn't done. If phase == FINISHED and winner == None, that the game was a tie.
     winner: Player
 
-    def __init__(self, squares: Dict[Pos2D, Square], round_num: int, phase: GamePhase, winner: Player = None):
+    def __init__(self, squares: Optional[Dict[Pos2D, Square]], round_num: int, phase: GamePhase, winner: Player = None):
         if (squares == None):
             self.squares = self._init_squares()
         else:
@@ -84,7 +87,7 @@ class Board():
             if (surrounding_square.state == SquareState.OPEN):
                 move_origin: Square = self.squares[pos]
                 move_target: Square = surrounding_square
-                potential_kills: List[Square] = self._get_killed_squares(move_origin.occupant, move_target.pos)
+                potential_kills: List[Pos2D] = self._get_killed_squares(move_origin.occupant, move_target.pos)
                 delta: Delta = Delta(self.squares[pos].occupant.owner, move_origin, move_target, potential_kills,
                                      potential_square_eliminations, potential_new_corners)
                 valid_moves.append(delta)
@@ -137,11 +140,11 @@ class Board():
 
         board_copy.squares[delta.move_target.pos].state = SquareState.OCCUPIED
 
-        for square in delta.killed_squares:
-            board_copy.squares[square.pos].occupant = None
-            board_copy.squares[square.pos].state = SquareState.OPEN
+        for pos in delta.killed_square_positions:
+            board_copy.squares[pos].occupant = None
+            board_copy.squares[pos].state = SquareState.OPEN
 
-        for square in delta.eliminated_squares:
+        for square in delta.eliminated_squares: # TODO: Make eliminated squares and new_corners also lists of positions instead?
             board_copy.squares[square.pos].occupant = None
             board_copy.squares[square.pos].state = SquareState.ELIMINATED
 
@@ -154,40 +157,73 @@ class Board():
 
         return board_copy
 
-    def _get_surrounding_squares(self, pos: Pos2D) -> List[Square]:
+    def print(self):
+        for col_i in range(Board._NUM_COLS):
+            for row_i in range(Board._NUM_ROWS):
+                pos: Pos2D = Pos2D(col_i, row_i)
+                print("{} ".format(self.squares[pos].getRepresentation()), end="")
+            # Finished row, print new line.
+            print("")
+
+    def _get_surrounding_squares(self, pos: Pos2D, direction: str = _OMNI) -> List[Square]:
         """
         Returns a list of max 4 squares which are directly adjacent (up, down, left, right) of the given position.
+        Can specify if only surrounding squares in a certain direction are wanted using the 'direction' parameter.
         :param pos: The position which we want adjacent squares for.
         :return: A list of adjacent squares.
         """
+        adjacent_squares: List[Square] = []
+        if (direction == Board._OMNI):
+            adjacent_squares.extend(self._get_surrounding_squares(pos, Board._HORIZONTAL))
+            adjacent_squares.extend(self._get_surrounding_squares(pos, Board._VERTICAL))
+        elif (direction == Board._HORIZONTAL):
+            adjacent_squares = [self.squares.get(pos.plus(1, 0)), self.squares.get(pos.plus(-1, 0))]
+        elif (direction == Board._VERTICAL):
+            adjacent_squares = [self.squares.get(pos.plus(0, 1)), self.squares.get(pos.plus(0, -1))]
 
-        # Generate the four possible positions for the squares we want and then return a list containing the squares
-        # located at those positions if they exist.
-        adjacent_positions: List[Pos2D] = [pos.plus(1, 0), pos.plus(-1, 0), pos.plus(0, 1), pos.plus(0, -1)]
-        return [self.squares[adj_pos] for adj_pos in adjacent_positions if adj_pos in self.squares]
+        return [square for square in adjacent_squares if square != None]
 
-    def _get_killed_squares(self, killer_piece: Piece, killer_pos: Pos2D) -> List[Square]:
+    def _get_killed_squares(self, moving_piece: Piece, moving_piece_pos: Pos2D) -> List[Pos2D]:
         """
-        TODO
-        :param killer_piece:
-        :param killer_pos:
+        TODO Mention about how it handles the moving piece being killed.
+        :param moving_piece:
+        :param moving_piece_pos:
         :return:
         """
-        killed_squares: List[Square] = []
+        killed_positions: List[Pos2D] = []
 
-        surrounding_squares: List[Square] = self._get_surrounding_squares(killer_pos)
+        # Short for 'horizontally surrounding squares'.
+        horiz_surr_squares: List[Square] = self._get_surrounding_squares(moving_piece_pos, Board._HORIZONTAL)
+        vert_surr_squares: List[Square] = self._get_surrounding_squares(moving_piece_pos, Board._VERTICAL)
 
-        for surrounding_square in surrounding_squares:
+        # Add any surrounding squares that would be killed if the given piece moved to the given location.
+        for surrounding_square in [*horiz_surr_squares, *vert_surr_squares]:
             if (surrounding_square.state == SquareState.OCCUPIED and
-                    surrounding_square.occupant.owner != killer_piece.owner):
-                delta_pos: Pos2D = Pos2D.minus(surrounding_square.pos, killer_pos)
+                    surrounding_square.occupant.owner != moving_piece.owner):
+                delta_pos: Pos2D = Pos2D.minus(surrounding_square.pos, moving_piece_pos)
                 opposite_square: Square = self.squares.get(Pos2D.add(surrounding_square.pos, delta_pos))
                 if (opposite_square != None and (opposite_square.state == SquareState.OCCUPIED and
-                     opposite_square.occupant.owner == killer_piece.owner) or
-                        opposite_square != None and opposite_square.state == SquareState.CORNER): # TODO Re-evaluate this
-                    killed_squares.append(surrounding_square)
+                                                 opposite_square.occupant.owner == moving_piece.owner) or
+                        opposite_square != None and opposite_square.state == SquareState.CORNER): # TODO Can this be written better?
+                    killed_positions.append(surrounding_square.pos)
 
-        return killed_squares
+        # Now check if the piece that is moving gets killed. This would be a stupid move, but it could happen.
+
+        # Remove references to surrounding squares if they are going to be killed, as they then cannot kill the moving
+        # piece.
+        [horiz_surr_squares.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in horiz_surr_squares] # TODO: Make this nicer?
+        [vert_surr_squares.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in vert_surr_squares]
+
+        # Filter out squares from both lists that are not occupied by enemy pieces.
+        potential_horiz_killer_squares = [square for square in horiz_surr_squares if square.state == SquareState.OCCUPIED and
+                                    square.occupant.owner != moving_piece.owner]
+        potential_vert_killer_squares = [square for square in vert_surr_squares if square.state == SquareState.OCCUPIED and
+                                    square.occupant.owner != moving_piece.owner]
+
+        if (len(potential_horiz_killer_squares) == 2 or len(potential_vert_killer_squares) == 2):
+            killed_positions.append(moving_piece_pos)
+
+        return killed_positions
 
     def _get_player_squares(self, player: Player) -> List[Square]:
         """
@@ -200,7 +236,7 @@ class Board():
 
     def _get_death_zone_square_changes(self) -> Tuple[List[Square], List[Square]]:
         """
-        TODO
+        TODO Does not seem to work correctly (see later rounds when printed).
         Does not take into account the round num. Simply returns a tuple of (eliminated squares : new corners).
         """
 

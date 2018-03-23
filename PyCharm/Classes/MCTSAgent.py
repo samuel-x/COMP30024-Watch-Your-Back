@@ -1,5 +1,5 @@
 import time
-from random import choice
+import random
 from typing import List, Tuple
 
 from math import sqrt
@@ -22,13 +22,17 @@ class MCTSAgent():
     # A reference to the root node in the tree that's being searched by MCTS.
     tree_root: Node
 
-    def __init__(self, tree_root: Node):
+    def __init__(self, tree_root: Node, seed: int = None):
         self.tree_root = tree_root
+
+        if (seed != None):
+            random.seed(seed)
 
     def train(self, duration_seconds: int):
         end_time: float = time.time() + duration_seconds
         while (time.time() < end_time):
             self._simulate()
+            break # TODO Remove
 
     @staticmethod
     def _select(node: Node, total_num_simulations: int) -> Node:
@@ -62,7 +66,7 @@ class MCTSAgent():
                     # Therefore, stop iterating through existing nodes so we can instead select an unexplored move.
                     break
 
-        random_delta: Delta = choice(deltas)
+        random_delta: Delta = random.choice(deltas)
         new_child_node: Node = Node(node, node.board.get_next_board(random_delta), random_delta)
         node.children.append(new_child_node)
         return new_child_node
@@ -93,6 +97,14 @@ class MCTSAgent():
                 # Must have been a tie.
                 node.wins += 0.5
 
-            print(node.num_simulations, node.wins)
+            # TODO Remove this (temp for printing/debugging)
+            if (node.board.round_num != 1):
+                print("{:3}: {}: ".format(node.board.round_num - 1, node.delta.player), end="")
+                if (node.delta.move_origin != None):
+                    print("({}, {}) -> ".format(node.delta.move_origin.pos.x, node.delta.move_origin.pos.y), end="")
+                print("({}, {})".format(node.delta.move_target.pos.x, node.delta.move_target.pos.y))
+
+            node.board.print()
+            print("")
 
             node = node.parent

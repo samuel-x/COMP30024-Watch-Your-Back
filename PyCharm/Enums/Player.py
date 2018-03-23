@@ -12,7 +12,7 @@ class Player(Enum):
 
     def getRepresentation(self):
         if (self == Player.WHITE):
-            return Player._whiteRepresentation
+            return Player._whiteRepresentation.value
 
         if (self == Player.BLACK):
-            return Player._blackRepresentation
+            return Player._blackRepresentation.value

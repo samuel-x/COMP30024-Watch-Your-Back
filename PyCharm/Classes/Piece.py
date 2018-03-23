@@ -9,6 +9,9 @@ class Piece():
 
     owner: Player
 
+    def getRepresentation(self):
+        return self.owner.getRepresentation()
+
     def __init__(self, owner: Player):
         self.owner = owner
 

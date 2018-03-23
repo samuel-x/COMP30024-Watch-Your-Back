@@ -6,7 +6,8 @@ class SquareState(Enum):
     representation as with the Player enum as e.g. OPEN = ELIMINATED = '-', which would cause issues. Instead, use the
     .getRepresentation function.
     """
-    _openOrEliminatedRepresentation = '-'
+    _openRepresentation = '-'
+    _eliminatedRepresentation = ' ' # TODO This should be '-' too in the submitted version for Part A.
     _cornerRepresentation = 'X'
 
     OPEN = 0            # The square is open and has nothing on it, but can be moved to.
@@ -15,10 +16,13 @@ class SquareState(Enum):
     ELIMINATED = 3      # The square is outside the play-zone (due to board shrinkage).
 
     def getRepresentation(self):
-        if (self == SquareState.OPEN or self == SquareState.ELIMINATED):
-            return SquareState._openOrEliminatedRepresentation
+        if (self == SquareState.OPEN):
+            return SquareState._openRepresentation.value
+
+        if (self == SquareState.ELIMINATED):
+            return SquareState._eliminatedRepresentation.value
 
         if (self == SquareState.CORNER):
-            return SquareState._cornerRepresentation
+            return SquareState._cornerRepresentation.value
 
         raise ValueError("Invalid SquareState: No representation found.")

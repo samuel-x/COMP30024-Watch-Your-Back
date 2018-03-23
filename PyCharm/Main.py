@@ -18,7 +18,7 @@ def main():
     board: Board = Board(None, 1, GamePhase.PLACEMENT, None)
 
     tree_root: Node = Node(None, board, None)
-    mcts_agent: MCTSAgent = MCTSAgent(tree_root)
-    mcts_agent.train(60)
+    mcts_agent: MCTSAgent = MCTSAgent(tree_root, 30024)
+    mcts_agent.train(5)
 
 main()
