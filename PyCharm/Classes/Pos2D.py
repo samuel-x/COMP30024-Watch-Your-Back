@@ -11,30 +11,30 @@ class Pos2D():
         self.x = x
         self.y = y
 
-    # TODO: Better names between 'plus' and 'add'?
-    def plus(self, x: int, y: int) -> 'Pos2D':
-        """
-         Returns a new Pos2D with 'x' and 'y' added to the calling instance's corresponding values.
-        """
-        return Pos2D(self.x + x, self.y + y)
-
-    @staticmethod
-    def add(pos1: 'Pos2D', pos2: 'Pos2D') -> 'Pos2D':
-        """
-        Returns a new Pos2D with the two given positions added together.
-        """
-        return Pos2D(pos1.x + pos2.x, pos1.y + pos2.y)
-
-    @staticmethod
-    def minus(pos1: 'Pos2D', pos2: 'Pos2D') -> 'Pos2D':
-        """
-        Returns a new Pos2D with second given position subtracted from the first.
-        """
-        return Pos2D(pos1.x - pos2.x, pos1.y - pos2.y)
-
     # TODO: Implement copy (and in Square)
     # def __deepcopy__(self, memodict={}) -> 'Pos2D':
     #
+
+    def __add__(self, other):
+        """
+                Returns a new Pos2D with 'x' and 'y' added to the calling instance's corresponding values. Allows for simple
+                pos1 + pos2 notation.
+                """
+        return Pos2D(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other):
+        """
+                Returns a new Pos2D with respective values of 'other' subtracted from 'self'. Allows for simple pos1 - pos2
+                notation.
+                """
+        return Pos2D(self.x - other.x, self.y - other.y)
+
+    def __str__(self):
+        """
+        TODO
+        :return:
+        """
+        return "({}, {})".format(self.x, self.y)
 
     def __hash__(self) -> int:
         """

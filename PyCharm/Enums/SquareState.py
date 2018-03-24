@@ -16,6 +16,10 @@ class SquareState(Enum):
     ELIMINATED = 3      # The square is outside the play-zone (due to board shrinkage).
 
     def getRepresentation(self):
+        """
+        Returns the string representation for the square state. Expected use would be for printing the board that the
+        square (which has this state) is a part of.
+        """
         if (self == SquareState.OPEN):
             return SquareState._openRepresentation.value
 

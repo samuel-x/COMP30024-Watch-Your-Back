@@ -65,7 +65,7 @@ class Board():
         # Get a list of all valid squares in the zone that the given player is allowed to place pieces.
         valid_squares: List[Square] = \
             [square for square in
-             self._select_squares(player_zone_corner_positions[0], player_zone_corner_positions[1].plus(-1, -1)) if
+             self._select_squares(player_zone_corner_positions[0], player_zone_corner_positions[1] + Pos2D(-1, -1)) if
              square.state == SquareState.OPEN]
 
         return [Delta(player, None, square, self._get_killed_squares(Piece(player), square.pos), [], []) for square in valid_squares]
@@ -177,9 +177,9 @@ class Board():
             adjacent_squares.extend(self._get_surrounding_squares(pos, Board._HORIZONTAL))
             adjacent_squares.extend(self._get_surrounding_squares(pos, Board._VERTICAL))
         elif (direction == Board._HORIZONTAL):
-            adjacent_squares = [self.squares.get(pos.plus(1, 0)), self.squares.get(pos.plus(-1, 0))]
+            adjacent_squares = [self.squares.get(pos + Pos2D(1, 0)), self.squares.get(pos + Pos2D(-1, 0))]
         elif (direction == Board._VERTICAL):
-            adjacent_squares = [self.squares.get(pos.plus(0, 1)), self.squares.get(pos.plus(0, -1))]
+            adjacent_squares = [self.squares.get(pos + Pos2D(0, 1)), self.squares.get(pos + Pos2D(0, -1))]
 
         return [square for square in adjacent_squares if square != None]
 
@@ -200,8 +200,8 @@ class Board():
         for surrounding_square in [*horiz_surr_squares, *vert_surr_squares]:
             if (surrounding_square.state == SquareState.OCCUPIED and
                     surrounding_square.occupant.owner != moving_piece.owner):
-                delta_pos: Pos2D = Pos2D.minus(surrounding_square.pos, moving_piece_pos)
-                opposite_square: Square = self.squares.get(Pos2D.add(surrounding_square.pos, delta_pos))
+                delta_pos: Pos2D = surrounding_square.pos - moving_piece_pos
+                opposite_square: Square = self.squares.get(surrounding_square.pos + delta_pos)
                 if (opposite_square != None and (opposite_square.state == SquareState.OCCUPIED and
                                                  opposite_square.occupant.owner == moving_piece.owner) or
                         opposite_square != None and opposite_square.state == SquareState.CORNER): # TODO Can this be written better?
@@ -253,10 +253,10 @@ class Board():
         eliminated_squares.extend(self._select_squares(original_corners[Board._BOTTOM_LEFT].pos,
                                                        original_corners[Board._TOP_LEFT].pos))
 
-        new_corners.append(self.squares[original_corners[Board._TOP_LEFT].pos.plus(1, 1)])
-        new_corners.append(self.squares[original_corners[Board._TOP_RIGHT].pos.plus(-1, 1)])
-        new_corners.append(self.squares[original_corners[Board._BOTTOM_LEFT].pos.plus(1, -1)])
-        new_corners.append(self.squares[original_corners[Board._BOTTOM_RIGHT].pos.plus(-1, -1)])
+        new_corners.append(self.squares[original_corners[Board._TOP_LEFT].pos + Pos2D(1, 1)])
+        new_corners.append(self.squares[original_corners[Board._TOP_RIGHT].pos + Pos2D(-1, 1)])
+        new_corners.append(self.squares[original_corners[Board._BOTTOM_LEFT].pos + Pos2D(1, -1)])
+        new_corners.append(self.squares[original_corners[Board._BOTTOM_RIGHT].pos + Pos2D(-1, -1)])
 
         return (eliminated_squares, new_corners)
 
@@ -274,10 +274,10 @@ class Board():
 
         corners[Board._TOP_LEFT] = top_left_corner
         dist_between_corners: int = Board._NUM_COLS - 2 * counter - 1
-        corners[Board._TOP_RIGHT] = self.squares[top_left_corner.pos.plus(dist_between_corners, 0)]
-        corners[Board._BOTTOM_LEFT] = self.squares[top_left_corner.pos.plus(0, dist_between_corners)]
+        corners[Board._TOP_RIGHT] = self.squares[top_left_corner.pos + Pos2D(dist_between_corners, 0)]
+        corners[Board._BOTTOM_LEFT] = self.squares[top_left_corner.pos + Pos2D(0, dist_between_corners)]
         corners[Board._BOTTOM_RIGHT] = \
-            self.squares[top_left_corner.pos.plus(dist_between_corners, dist_between_corners)]
+            self.squares[top_left_corner.pos + Pos2D(dist_between_corners, dist_between_corners)]
 
         return corners
 

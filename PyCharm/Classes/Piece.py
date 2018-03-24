@@ -9,11 +9,15 @@ class Piece():
 
     owner: Player
 
-    def getRepresentation(self):
-        return self.owner.getRepresentation()
-
     def __init__(self, owner: Player):
         self.owner = owner
 
-    def __eq__(self, other: 'Piece'):
+    def getRepresentation(self):
+        """
+        Returns the string representation for the piece. Expected use would be for printing the board that the
+        square (which has this piece) is a part of.
+        """
+        return self.owner.getRepresentation()
+
+    def __eq__(self, other: 'Piece'): # TODO Do we need this?
         return self.owner == other.owner
