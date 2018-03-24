@@ -16,6 +16,8 @@
 - Look at MCTS improvements: https://en.wikipedia.org/wiki/Monte_Carlo_tree_search#Improvements
 	- Add heuristic score to the UCB1 formula e.g. bi / ni where bi is a heuristic score for move i.
 		- Heuristic score could be the ratio of white to black pieces.
+		- Could also be more explicit i.e. it can detect that a move kills your own piece (for
+		  no reason), so return a very low heuristic score e.g. -100.
 	- Lower exploration multiplier? Seems to explore a lot at the moment.
 	- Look into RAVE (described in Wikipedia article)
 
@@ -23,4 +25,10 @@
 	- Can test how good the implemented MCTS algorithm is.
 	- MCTS will happen constantly, both during its turn and the player's turn.
 
-- Document and refactor things.
+- Todo
+	- Documentation
+	- Refactoring ugly code.
+	- Making sure that rounds where a player cannot move are handled appropriately (no crashing!)
+	- Fix bug where jumping over a piece to put yourself between an enemy and a corner doesn't kill you. 
+		- See Bug.png.
+		- Seed 30024, simulation 100.

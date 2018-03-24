@@ -19,9 +19,8 @@ class Node():
     # The delta that occurred between the parent board and this one.
     delta: Delta
 
-    def __init__(self, parent, board, delta):
+    def __init__(self, parent, delta):
         self.parent = parent
-        self.board = board
         self.delta = delta
 
         self.children = []
