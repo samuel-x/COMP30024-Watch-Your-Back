@@ -68,7 +68,7 @@ class Board():
              self._select_squares(player_zone_corner_positions[0], player_zone_corner_positions[1]) if
              square.state == SquareState.OPEN]
 
-        return [Delta(player, None, square, self._get_killed_squares(Piece(player), square.pos), [], []) for square in valid_squares]
+        return [Delta(player, None, square, self._get_killed_positions(Piece(player), square.pos), [], []) for square in valid_squares]
 
     def get_valid_moves(self, pos: Pos2D) -> List[Delta]:
         """
@@ -79,15 +79,18 @@ class Board():
 
         potential_square_eliminations: List[Square] = []
         potential_new_corners: List[Square] = []
+        potential_corner_kills: List[Square] = []
         if (self.round_num in Board._DEATH_ZONE_ROUNDS):
-            (potential_square_eliminations, potential_new_corners) = self._get_death_zone_square_changes()
+            (potential_square_eliminations, potential_new_corners, potential_corner_kills) = \
+                self._get_death_zone_changes()
 
         surrounding_squares: List[Square] = self._get_surrounding_squares(pos)
         for surrounding_square in surrounding_squares:
             if (surrounding_square.state == SquareState.OPEN):
                 move_origin: Square = self.squares[pos]
                 move_target: Square = surrounding_square
-                potential_kills: List[Pos2D] = self._get_killed_squares(move_origin.occupant, move_target.pos)
+                potential_kills: List[Pos2D] = self._get_killed_positions(move_origin.occupant, move_target.pos) + \
+                                               [square.pos for square in potential_corner_kills]# TODO This is bad.
                 delta: Delta = Delta(self.squares[pos].occupant.owner, move_origin, move_target, potential_kills,
                                      potential_square_eliminations, potential_new_corners)
                 valid_moves.append(delta)
@@ -175,7 +178,7 @@ class Board():
 
         return [square for square in adjacent_squares if square != None]
 
-    def _get_killed_squares(self, moving_piece: Piece, moving_piece_pos: Pos2D) -> List[Pos2D]:
+    def _get_killed_positions(self, moving_piece: Piece, moving_piece_pos: Pos2D) -> List[Pos2D]:
         """
         TODO Mention about how it handles the moving piece being killed.
         :param moving_piece:
@@ -192,8 +195,8 @@ class Board():
         for surrounding_square in [*horiz_surr_squares, *vert_surr_squares]:
             if (surrounding_square.state == SquareState.OCCUPIED and
                     surrounding_square.occupant.owner != moving_piece.owner):
-                delta_pos: Pos2D = surrounding_square.pos - moving_piece_pos
-                opposite_square: Square = self.squares.get(surrounding_square.pos + delta_pos)
+                opposite_square: Square = \
+                    self.squares.get(self._get_opposite_pos(moving_piece_pos, surrounding_square.pos))
                 if (opposite_square != None and (opposite_square.state == SquareState.OCCUPIED and
                                                  opposite_square.occupant.owner == moving_piece.owner) or
                         opposite_square != None and opposite_square.state == SquareState.CORNER): # TODO Can this be written better?
@@ -217,6 +220,21 @@ class Board():
 
         return killed_positions
 
+    def _get_opposite_pos(self, first_pos: Pos2D, second_pos: Pos2D) -> Pos2D:
+        """
+        TODO Better name?
+        Always returns a Pos2D, regardless of if it marks a position off of the board, an eliminated square, etc.
+        Takes two adjacent positions and returns the third if read in the order of first_pos -> second_pos -> third_pos.
+        :param first_pos:
+        :param second_pos:
+        :return:
+        """
+        delta: Pos2D = second_pos - first_pos
+
+        assert (abs(delta.x) + abs(delta.y)) == 1
+
+        return second_pos + delta
+
     def _get_player_squares(self, player: Player) -> List[Square]:
         """
         TODO
@@ -226,9 +244,9 @@ class Board():
         return [square for square in self.squares.values() if
                 square.state == SquareState.OCCUPIED and square.occupant.owner == player]
 
-    def _get_death_zone_square_changes(self) -> Tuple[List[Square], List[Square]]:
+    def _get_death_zone_changes(self) -> Tuple[List[Square], List[Square], List[Square]]:
         """
-        TODO Does not seem to work correctly (see later rounds when printed).
+        TODO
         Does not take into account the round num. Simply returns a tuple of (eliminated squares : new corners).
         """
 
@@ -252,7 +270,18 @@ class Board():
         new_corners.append(self.squares[original_corners[Board._BOTTOM_LEFT].pos + Pos2D(1, -1)])
         new_corners.append(self.squares[original_corners[Board._BOTTOM_RIGHT].pos + Pos2D(-1, -1)])
 
-        return (eliminated_squares, new_corners)
+        # Now identify all squares that will be eliminated as a result of the new corners.
+        killed_squares: List[Square] = []
+        for corner in new_corners:
+            surr_occupied_squares: List[Square] = [square for square in self._get_surrounding_squares(corner.pos) if
+                                                   square.state == SquareState.OCCUPIED]
+            for adj_square in surr_occupied_squares:
+                opposite_square: Square = self.squares.get(self._get_opposite_pos(corner.pos, adj_square.pos))
+                if (opposite_square != None and  opposite_square.state == SquareState.OCCUPIED and
+                        adj_square.occupant.owner != opposite_square.occupant.owner):
+                    killed_squares.append(adj_square)
+
+        return (eliminated_squares, new_corners, killed_squares)
 
     def _get_corner_squares(self) -> Dict[str, Square]:
         """
