@@ -44,16 +44,12 @@ class Delta():
         :param other:
         :return:
         """
-        if (not isinstance(self, Delta)):
-            return not isinstance(other, Delta)
-
-        self_tuple = (self.player, self.move_origin, self.move_target, self.killed_square_positions, self.eliminated_squares,
-                      self.new_corners)
-
-        if (isinstance(other, Delta)):
-            other_tuple = (other.player, other.move_origin, other.move_target, other.killed_square_positions,
-                           other.eliminated_squares, other.new_corners)
-        else:
+        if (not isinstance(other, Delta)):
             return False
+
+        self_tuple = (self.player, self.move_origin, self.move_target, self.killed_square_positions,
+                      self.eliminated_squares, self.new_corners)
+        other_tuple = (other.player, other.move_origin, other.move_target, other.killed_square_positions,
+                           other.eliminated_squares, other.new_corners)
 
         return self_tuple == other_tuple
