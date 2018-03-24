@@ -68,9 +68,10 @@ class Board():
              self._select_squares(player_zone_corner_positions[0], player_zone_corner_positions[1]) if
              square.state == SquareState.OPEN]
 
-        return [Delta(player, None, square, self._get_killed_positions(Piece(player), square.pos), [], []) for square in valid_squares]
+        return [Delta(player, None, square, self._get_killed_positions(Piece(player), square.pos), [], [])
+                for square in valid_squares]
 
-    def get_valid_moves(self, pos: Pos2D) -> List[Delta]:
+    def get_valid_movements(self, pos: Pos2D) -> List[Delta]:
         """
         :param pos:
         :return:
@@ -86,14 +87,27 @@ class Board():
 
         surrounding_squares: List[Square] = self._get_surrounding_squares(pos)
         for surrounding_square in surrounding_squares:
+            move_origin: Square
+            move_target: Square
+
             if (surrounding_square.state == SquareState.OPEN):
-                move_origin: Square = self.squares[pos]
-                move_target: Square = surrounding_square
-                potential_kills: List[Pos2D] = self._get_killed_positions(move_origin.occupant, move_target.pos) + \
-                                               [square.pos for square in potential_corner_kills]# TODO This is bad.
-                delta: Delta = Delta(self.squares[pos].occupant.owner, move_origin, move_target, potential_kills,
-                                     potential_square_eliminations, potential_new_corners)
-                valid_moves.append(delta)
+                move_origin = self.squares[pos]
+                move_target = surrounding_square
+            elif (surrounding_square.state == SquareState.OCCUPIED):
+                opposite_square: Square = self.squares.get(self._get_opposite_pos(pos, surrounding_square.pos))
+                if (opposite_square != None and opposite_square.state == SquareState.OPEN):
+                    move_origin = self.squares[pos]
+                    move_target = opposite_square
+                else:
+                    continue
+            else:
+                continue
+
+            potential_kills: List[Pos2D] = self._get_killed_positions(move_origin.occupant, move_target.pos) + \
+                              [square.pos for square in potential_corner_kills]  # TODO This looks bad
+            delta: Delta = Delta(self.squares[pos].occupant.owner, move_origin, move_target, potential_kills,
+                          potential_square_eliminations, potential_new_corners)
+            valid_moves.append(delta)
 
         return valid_moves
 
@@ -111,7 +125,7 @@ class Board():
             # Get a list of all squares that are occupied by the given player.
             player_squares: List[Square] = self._get_player_squares(player)
             # Iterate over each of these squares and add their valid moves to 'valid_moves'.
-            [valid_moves.extend(self.get_valid_moves(square.pos)) for square in player_squares]
+            [valid_moves.extend(self.get_valid_movements(square.pos)) for square in player_squares]
 
             return valid_moves
 
@@ -178,27 +192,28 @@ class Board():
 
         return [square for square in adjacent_squares if square != None]
 
-    def _get_killed_positions(self, moving_piece: Piece, moving_piece_pos: Pos2D) -> List[Pos2D]:
+    def _get_killed_positions(self, moving_piece: Piece, moving_piece_target_pos: Pos2D) -> List[Pos2D]:
         """
         TODO Mention about how it handles the moving piece being killed.
         :param moving_piece:
-        :param moving_piece_pos:
+        :param moving_piece_target_pos:
         :return:
         """
         killed_positions: List[Pos2D] = []
 
         # Short for 'horizontally surrounding squares'.
-        horiz_surr_squares: List[Square] = self._get_surrounding_squares(moving_piece_pos, Board._HORIZONTAL)
-        vert_surr_squares: List[Square] = self._get_surrounding_squares(moving_piece_pos, Board._VERTICAL)
+        horiz_surr_squares: List[Square] = self._get_surrounding_squares(moving_piece_target_pos, Board._HORIZONTAL)
+        vert_surr_squares: List[Square] = self._get_surrounding_squares(moving_piece_target_pos, Board._VERTICAL)
 
         # Add any surrounding squares that would be killed if the given piece moved to the given location.
         for surrounding_square in [*horiz_surr_squares, *vert_surr_squares]:
             if (surrounding_square.state == SquareState.OCCUPIED and
                     surrounding_square.occupant.owner != moving_piece.owner):
                 opposite_square: Square = \
-                    self.squares.get(self._get_opposite_pos(moving_piece_pos, surrounding_square.pos))
+                    self.squares.get(self._get_opposite_pos(moving_piece_target_pos, surrounding_square.pos))
                 if (opposite_square != None and (opposite_square.state == SquareState.OCCUPIED and
-                                                 opposite_square.occupant.owner == moving_piece.owner) or
+                                                 opposite_square.occupant.owner == moving_piece.owner and
+                                                 opposite_square.occupant != moving_piece) or
                         opposite_square != None and opposite_square.state == SquareState.CORNER): # TODO Can this be written better?
                     killed_positions.append(surrounding_square.pos)
 
@@ -216,7 +231,7 @@ class Board():
                                     square.occupant.owner != moving_piece.owner]
 
         if (len(potential_horiz_killer_squares) == 2 or len(potential_vert_killer_squares) == 2):
-            killed_positions.append(moving_piece_pos)
+            killed_positions.append(moving_piece_target_pos)
 
         return killed_positions
 

@@ -3,14 +3,16 @@ from Enums.Player import Player
 
 class Piece():
     """
-    A structure that represents a piece on the board. Upon creation, assumed to contain the following fields:
-    Player owner
+    A structure that represents a piece on the board.
     """
 
     owner: Player
+    _id: int = 0
 
     def __init__(self, owner: Player):
         self.owner = owner
+        self._id = Piece._id
+        Piece._id += 1
 
     def getRepresentation(self):
         """
@@ -19,5 +21,5 @@ class Piece():
         """
         return self.owner.getRepresentation()
 
-    def __eq__(self, other: 'Piece'): # TODO Do we need this?
-        return self.owner == other.owner
+    def __eq__(self, other: 'Piece'):
+        return self._id == other._id
