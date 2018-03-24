@@ -19,7 +19,8 @@ def main():
 
     tree_root: Node = Node(None, board, None)
     mcts_agent: MCTSAgent = MCTSAgent(tree_root, 0)
-    mcts_agent.train(5)
+    mcts_agent.train(300)
+
 
     # pos1 = Pos2D(5, 3)
     # pos2 = Pos2D(3, 3)

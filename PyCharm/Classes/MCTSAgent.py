@@ -31,8 +31,10 @@ class MCTSAgent():
     def train(self, duration_seconds: int):
         end_time: float = time.time() + duration_seconds
         while (time.time() < end_time):
+            print(self.tree_root.wins, self.tree_root.num_simulations) # TODO Remove
             self._simulate()
-            break # TODO Remove
+            # break # TODO Remove
+        print(self.tree_root.wins, self.tree_root.num_simulations)  # TODO Remove
 
     @staticmethod
     def _select(node: Node, total_num_simulations: int) -> Node:
@@ -50,6 +52,11 @@ class MCTSAgent():
                 deltas.remove(child.delta)
                 scores.append((child, Utils.UCB1(child.wins, child.num_simulations, total_num_simulations,
                                                  MCTSAgent._EXPLORATIONMULTIPLIER)))
+
+            # Since there are no unexplored options available, we'll set its score to -1 such that the algorithm won't
+            # attempt to choose an unexplored option (since there are none).
+            if len(deltas) == 0:
+                unexplored_nodes_score = -1
 
             # Order by highest scoring nodes.
             scores = sorted(scores, key=lambda x:x[1], reverse=True)
@@ -74,6 +81,15 @@ class MCTSAgent():
     def _simulate(self):
         leaf: Node = self._select(self.tree_root, self.tree_root.num_simulations)
         while (leaf.board.phase != GamePhase.FINISHED):
+            # if (leaf.board.round_num != 1): # TODO Remove this
+            #     selection = "({}, {}) -> NODE" if leaf.num_simulations > 2 else "({}, {}) -> EXPLORE"
+            #     print("{:3}: {} : {}".format(leaf.board.round_num - 1, leaf.delta.player, selection.format(leaf.wins, leaf.num_simulations)))
+            #     if (leaf.delta.move_origin != None):
+            #         print("{} -> ".format(leaf.delta.move_origin.pos), end="")
+            #     print("{}".format(leaf.delta.move_target.pos))
+            #
+            # print(leaf.board)
+            # print("")
             leaf = self._select(leaf, self.tree_root.num_simulations)
 
         self._back_propagate(leaf, leaf.board.winner)
@@ -91,20 +107,21 @@ class MCTSAgent():
         while (node != None):
             node.num_simulations += 1
 
-            if (node.board.winner == winner):
+            if ((node.board.round_num == 1 and node.children[0].delta.player == winner) or
+                    (node.delta != None and node.delta.player == winner)):
                 node.wins += 1
             elif (winner == None):
                 # Must have been a tie.
                 node.wins += 0.5
 
             # TODO Remove this (temp for printing/debugging)
-            if (node.board.round_num != 1):
-                print("{:3}: {}: ".format(node.board.round_num - 1, node.delta.player), end="")
-                if (node.delta.move_origin != None):
-                    print("{} -> ".format(node.delta.move_origin.pos), end="")
-                print("{}".format(node.delta.move_target.pos))
-
-            print(node.board)
-            print("")
+            # if (node.board.round_num != 1):
+            #     print("{:3}: {}: ".format(node.board.round_num - 1, node.delta.player), end="")
+            #     if (node.delta.move_origin != None):
+            #         print("{} -> ".format(node.delta.move_origin.pos), end="")
+            #     print("{}".format(node.delta.move_target.pos))
+            #
+            # print(node.board)
+            # print("")
 
             node = node.parent
