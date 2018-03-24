@@ -101,10 +101,10 @@ class MCTSAgent():
             if (node.board.round_num != 1):
                 print("{:3}: {}: ".format(node.board.round_num - 1, node.delta.player), end="")
                 if (node.delta.move_origin != None):
-                    print("({}, {}) -> ".format(node.delta.move_origin.pos.x, node.delta.move_origin.pos.y), end="")
-                print("({}, {})".format(node.delta.move_target.pos.x, node.delta.move_target.pos.y))
+                    print("{} -> ".format(node.delta.move_origin.pos), end="")
+                print("{}".format(node.delta.move_target.pos))
 
-            node.board.print()
+            print(node.board)
             print("")
 
             node = node.parent

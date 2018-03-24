@@ -65,7 +65,7 @@ class Board():
         # Get a list of all valid squares in the zone that the given player is allowed to place pieces.
         valid_squares: List[Square] = \
             [square for square in
-             self._select_squares(player_zone_corner_positions[0], player_zone_corner_positions[1] + Pos2D(-1, -1)) if
+             self._select_squares(player_zone_corner_positions[0], player_zone_corner_positions[1]) if
              square.state == SquareState.OPEN]
 
         return [Delta(player, None, square, self._get_killed_squares(Piece(player), square.pos), [], []) for square in valid_squares]
@@ -157,14 +157,6 @@ class Board():
 
         return board_copy
 
-    def print(self):
-        for col_i in range(Board._NUM_COLS):
-            for row_i in range(Board._NUM_ROWS):
-                pos: Pos2D = Pos2D(col_i, row_i)
-                print("{} ".format(self.squares[pos].getRepresentation()), end="")
-            # Finished row, print new line.
-            print("")
-
     def _get_surrounding_squares(self, pos: Pos2D, direction: str = _OMNI) -> List[Square]:
         """
         Returns a list of max 4 squares which are directly adjacent (up, down, left, right) of the given position.
@@ -245,13 +237,15 @@ class Board():
 
         original_corners: Dict[str, Square] = self._get_corner_squares()
         eliminated_squares.extend(self._select_squares(original_corners[Board._TOP_LEFT].pos,
-                                                       original_corners[Board._TOP_RIGHT].pos))
+                                                       original_corners[Board._TOP_RIGHT].pos, offset=Pos2D(0, 1)))
         eliminated_squares.extend(self._select_squares(original_corners[Board._TOP_RIGHT].pos,
-                                                       original_corners[Board._BOTTOM_RIGHT].pos))
-        eliminated_squares.extend(self._select_squares(original_corners[Board._BOTTOM_RIGHT].pos,
-                                                       original_corners[Board._BOTTOM_LEFT].pos))
+                                                       original_corners[Board._BOTTOM_RIGHT].pos, offset=Pos2D(1, 1)))
         eliminated_squares.extend(self._select_squares(original_corners[Board._BOTTOM_LEFT].pos,
-                                                       original_corners[Board._TOP_LEFT].pos))
+                                                       original_corners[Board._BOTTOM_RIGHT].pos, offset=Pos2D(0, 1)))
+        # TODO Consider that this means that top left will be in eliminated_squares TWICE due to the first argument
+        # to _select_squares always being inclusive.
+        eliminated_squares.extend(self._select_squares(original_corners[Board._TOP_LEFT].pos,
+                                                       original_corners[Board._BOTTOM_LEFT].pos, offset=Pos2D(1, 0)))
 
         new_corners.append(self.squares[original_corners[Board._TOP_LEFT].pos + Pos2D(1, 1)])
         new_corners.append(self.squares[original_corners[Board._TOP_RIGHT].pos + Pos2D(-1, 1)])
@@ -281,7 +275,8 @@ class Board():
 
         return corners
 
-    def _select_squares(self, top_left_corner: Pos2D, bottom_right_corner: Pos2D) -> List[Square]:
+    def _select_squares(self, top_left_corner: Pos2D, bottom_right_corner: Pos2D, offset: Pos2D = Pos2D(0, 0)) -> \
+            List[Square]:
         """
         TODO: Make inclusive or exclusive?
         :param top_left_corner:
@@ -290,9 +285,9 @@ class Board():
         """
         squares: List[Square] = []
 
-        # + 1 so as to make the selection inclusive.
-        for col_i in range(top_left_corner.x, bottom_right_corner.x + 1):
-            for row_i in range(top_left_corner.y, bottom_right_corner.y + 1):
+        # offset can make the selection inclusive.
+        for row_i in range(top_left_corner.y, bottom_right_corner.y + offset.y):
+            for col_i in range(top_left_corner.x, bottom_right_corner.x + offset.x):
                 squares.append(self.squares[Pos2D(col_i, row_i)])
 
         return squares
@@ -348,6 +343,19 @@ class Board():
                     squares[pos] = Square(pos, None, SquareState.OPEN)
 
         return squares
+
+    def __str__(self):
+        output: str = ""
+
+        for row_i in range(Board._NUM_ROWS):
+            for col_i in range(Board._NUM_COLS):
+                pos: Pos2D = Pos2D(col_i, row_i)
+                output += ("{} ".format(self.squares[pos].getRepresentation()))
+            # Finished row, add new line.
+            output += "\n"
+
+        return output
+
     def __deepcopy__(self, memodict={}) -> 'Board':
         """
         Returns a deep copy of the calling instance. Necessary in order to ensure that different boards don't reference

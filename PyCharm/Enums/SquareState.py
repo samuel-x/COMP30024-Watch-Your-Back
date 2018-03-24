@@ -7,7 +7,7 @@ class SquareState(Enum):
     .getRepresentation function.
     """
     _openRepresentation = '-'
-    _eliminatedRepresentation = ' ' # TODO This should be '-' too in the submitted version for Part A.
+    _eliminatedRepresentation = '#' # TODO This should be '-' too in the submitted version for Part A.
     _cornerRepresentation = 'X'
 
     OPEN = 0            # The square is open and has nothing on it, but can be moved to.
