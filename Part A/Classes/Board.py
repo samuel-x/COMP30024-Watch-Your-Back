@@ -42,6 +42,21 @@ class Board():
         self.round_num = round_num
         self.phase = phase
 
+    def get_num_moves(self, player: Player) -> int:
+        player_squares: List[Square] = self._get_player_squares(player)
+        count: int = 0
+        for player_square in player_squares:
+            surr_squares = self._get_surrounding_squares(player_square.pos)
+            for surr_square in surr_squares:
+                if (surr_square.state == SquareState.OPEN):
+                    count += 1
+                elif(surr_square.state == SquareState.OCCUPIED):
+                    opposite_square: Square = self.squares.get(self._get_opposite_pos(player_square.pos, surr_square.pos))
+                    if (opposite_square != None and opposite_square.state == SquareState.OPEN):
+                        count += 1
+
+        return count
+
     def get_valid_movements(self, pos: Pos2D) -> List[Delta]:
         """
         :param pos:
