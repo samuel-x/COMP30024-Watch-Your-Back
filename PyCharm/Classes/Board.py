@@ -224,11 +224,11 @@ class Board():
         [horiz_surr_squares.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in horiz_surr_squares] # TODO: Make this nicer?
         [vert_surr_squares.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in vert_surr_squares]
 
-        # Filter out squares from both lists that are not occupied by enemy pieces.
-        potential_horiz_killer_squares = [square for square in horiz_surr_squares if square.state == SquareState.OCCUPIED and
-                                    square.occupant.owner != moving_piece.owner]
-        potential_vert_killer_squares = [square for square in vert_surr_squares if square.state == SquareState.OCCUPIED and
-                                    square.occupant.owner != moving_piece.owner]
+        # Filter out squares from both lists that are not occupied by enemy pieces or aren't corners.
+        potential_horiz_killer_squares = [square for square in horiz_surr_squares if (square.state == SquareState.OCCUPIED and
+                                    square.occupant.owner != moving_piece.owner) or square.state == SquareState.CORNER]
+        potential_vert_killer_squares = [square for square in vert_surr_squares if (square.state == SquareState.OCCUPIED and
+                                    square.occupant.owner != moving_piece.owner) or square.state == SquareState.CORNER]
 
         if (len(potential_horiz_killer_squares) == 2 or len(potential_vert_killer_squares) == 2):
             killed_positions.append(moving_piece_target_pos)
