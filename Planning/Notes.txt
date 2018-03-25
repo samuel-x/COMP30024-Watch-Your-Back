@@ -1,0 +1,34 @@
+- Currently handling draws by adding 0.5 to every node.
+	vs adding no wins to any node?
+
+- Look at python picke module for possibly serializing and deserializing the MCTS tree.
+	https://docs.python.org/3.6/library/pickle.html#module-pickle
+	Are we allowed to do that for the final project?
+
+- Look after scenarios where we have the delta and need a reference to the play maker and we did 
+	that using delta.move_origin.occupant.owner. Replace that with the new delta.player.
+
+- Clean up which methods require square vs position references.
+	It's a bit strange for instance methods simply to return position references, as it'd be
+	unrelated to the instance itself.
+		Make them static methods? Make them return squares instead?
+
+- Look at MCTS improvements: https://en.wikipedia.org/wiki/Monte_Carlo_tree_search#Improvements
+	- Add heuristic score to the UCB1 formula e.g. bi / ni where bi is a heuristic score for move i.
+		- Heuristic score could be the ratio of white to black pieces.
+		- Could also be more explicit i.e. it can detect that a move kills your own piece (for
+		  no reason), so return a very low heuristic score e.g. -100.
+	- Lower exploration multiplier? Seems to explore a lot at the moment.
+	- Look into RAVE (described in Wikipedia article)
+
+- Implement actual game playing.
+	- Can test how good the implemented MCTS algorithm is.
+	- MCTS will happen constantly, both during its turn and the player's turn.
+
+- Todo
+	- Documentation
+	- Refactoring ugly code.
+	- Making sure that rounds where a player cannot move are handled appropriately (no crashing!)
+	- Fix bug where jumping over a piece to put yourself between an enemy and a corner doesn't kill you. 
+		- See Bug.png.
+		- Seed 30024, simulation 100.
