@@ -20,23 +20,15 @@ class Delta():
     # commit suicide by moving it e.g. between two enemy pieces, the position that the piece ended up on i.e.
     # move_target will be included in .killed_square_positions.
     killed_square_positions: List[Pos2D]
-    # A list of squares that were eliminated due to the shrinking of the board, not due to the direct movement of an
-    # enemy piece.
-    eliminated_squares: List[Square]
-    # A list of squares that became corner pieces as a result of a death zone.
-    new_corners: List[Square]
     # A reference to the enum representing the player who made the move/delta.
     player: Player
 
     def __init__(self, player: Player, move_origin: Optional[Square], move_target: Square,
-                 killed_square_positions: Optional[List[Pos2D]], eliminated_squares: List[Square],
-                 new_corners: List[Square]):
+                 killed_square_positions: Optional[List[Pos2D]]):
         self.player = player
         self.move_origin = move_origin
         self.move_target = move_target
         self.killed_square_positions = killed_square_positions
-        self.eliminated_squares = eliminated_squares
-        self.new_corners = new_corners
 
     def __str__(self):
         player: str = self.player.__str__()
@@ -54,9 +46,7 @@ class Delta():
         if (not isinstance(other, Delta)):
             return False
 
-        self_tuple = (self.player, self.move_origin, self.move_target, self.killed_square_positions,
-                      self.eliminated_squares, self.new_corners)
-        other_tuple = (other.player, other.move_origin, other.move_target, other.killed_square_positions,
-                           other.eliminated_squares, other.new_corners)
+        self_tuple = (self.player, self.move_origin, self.move_target, self.killed_square_positions)
+        other_tuple = (other.player, other.move_origin, other.move_target, other.killed_square_positions)
 
         return self_tuple == other_tuple

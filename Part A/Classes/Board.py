@@ -17,10 +17,6 @@ class Board():
 
     # TODO Move these into Utilities? Elsewhere?
     # Directional/locational constants.
-    _TOP_LEFT: str = "top left"
-    _TOP_RIGHT: str = "top right"
-    _BOTTOM_LEFT: str = "bottom left"
-    _BOTTOM_RIGHT: str = "bottom right"
     _HORIZONTAL: str = "horizontal"
     _VERTICAL: str = "vertical"
     _OMNI: str = "omnidirectional" # TODO Better name?
@@ -28,14 +24,7 @@ class Board():
     _NUM_COLS: int = 8
     _NUM_ROWS: int = 8
     # TODO: Better way to specify placement zone?
-    # Two lists, each containing two Pos2Ds, that mark the rectangular zones that white or black can place pieces in
-    # during the placement phase. Each list contains the upper-left hand corner and the bottom-right hand corner for
-    # their respective zones.
-    _WHITE_PLACEMENT_ZONE_CORNER_POSITIONS: List[Pos2D] = [Pos2D(0, 0), Pos2D(_NUM_COLS, _NUM_ROWS - 2)]
-    _BLACK_PLACEMENT_ZONE_CORNER_POSITIONS: List[Pos2D] = [Pos2D(0, 2), Pos2D(_NUM_COLS, _NUM_ROWS)]
-    _MOVEMENT_PHASE_START_ROUND = 24
-    _DEATH_ZONE_ROUNDS: List[int] = [128, 192]
-    _MIN_NUM_PIECES_BEFORE_LOSS = 1 # TODO Should be 2 (but only 1 in massacre)
+    _MIN_NUM_PIECES_BEFORE_LOSS = 1
 
     # Structure that contains the squares.
     squares: Dict[Pos2D, Square]
@@ -43,10 +32,8 @@ class Board():
     round_num: int
     # An enum used to indicate the current phase of the game.
     phase: GamePhase
-    # Equals None while the game isn't done. If phase == FINISHED and winner == None, that the game was a tie.
-    winner: Player
 
-    def __init__(self, squares: Optional[Dict[Pos2D, Square]], round_num: int, phase: GamePhase, winner: Player = None):
+    def __init__(self, squares: Optional[Dict[Pos2D, Square]], round_num: int, phase: GamePhase):
         if (squares == None):
             self.squares = self._init_squares()
         else:
@@ -54,28 +41,6 @@ class Board():
 
         self.round_num = round_num
         self.phase = phase
-        self.winner = winner
-
-    def get_valid_placements(self, player: Player) -> List[Delta]:
-        """
-        Returns a list of deltas (or placements) that a given Player can do on the caller 'Board' instance if it is the
-        placement phase.
-        """
-
-        player_zone_corner_positions: List[Pos2D]
-        if (player == Player.WHITE):
-            player_zone_corner_positions = Board._WHITE_PLACEMENT_ZONE_CORNER_POSITIONS
-        else:
-            player_zone_corner_positions = Board._BLACK_PLACEMENT_ZONE_CORNER_POSITIONS
-
-        # Get a list of all valid squares in the zone that the given player is allowed to place pieces.
-        valid_squares: List[Square] = \
-            [square for square in
-             self._select_squares(player_zone_corner_positions[0], player_zone_corner_positions[1]) if
-             square.state == SquareState.OPEN]
-
-        return [Delta(player, None, square, self._get_killed_positions(Piece(player), square.pos), [], [])
-                for square in valid_squares]
 
     def get_valid_movements(self, pos: Pos2D) -> List[Delta]:
         """
@@ -83,13 +48,6 @@ class Board():
         :return:
         """
         valid_moves: List[Delta] = []
-
-        potential_square_eliminations: List[Square] = []
-        potential_new_corners: List[Square] = []
-        potential_corner_kills: List[Square] = []
-        if (self.round_num in Board._DEATH_ZONE_ROUNDS):
-            (potential_square_eliminations, potential_new_corners, potential_corner_kills) = \
-                self._get_death_zone_changes()
 
         surrounding_squares: List[Square] = self._get_surrounding_squares(pos)
         for surrounding_square in surrounding_squares:
@@ -109,10 +67,8 @@ class Board():
             else:
                 continue
 
-            potential_kills: List[Pos2D] = self._get_killed_positions(move_origin.occupant, move_target.pos) + \
-                              [square.pos for square in potential_corner_kills]  # TODO This looks bad
-            delta: Delta = Delta(self.squares[pos].occupant.owner, move_origin, move_target, potential_kills,
-                          potential_square_eliminations, potential_new_corners)
+            potential_kills: List[Pos2D] = self._get_killed_positions(move_origin.occupant, move_target.pos)
+            delta: Delta = Delta(self.squares[pos].occupant.owner, move_origin, move_target, potential_kills)
             valid_moves.append(delta)
 
         return valid_moves
@@ -121,21 +77,15 @@ class Board():
         """
         Returns a list of all possible moves for a given player.
         """
+        valid_moves: List[Delta] = []
 
-        if (self.phase == GamePhase.PLACEMENT):
-            return self.get_valid_placements(player)
+        # Get a list of all squares that are occupied by the given player.
+        player_squares: List[Square] = self._get_player_squares(player)
 
-        if (self.phase == GamePhase.MOVEMENT):
-            valid_moves: List[Delta] = []
+        # Iterate over each of these squares and add their valid moves to 'valid_moves'.
+        [valid_moves.extend(self.get_valid_movements(square.pos)) for square in player_squares]
 
-            # Get a list of all squares that are occupied by the given player.
-            player_squares: List[Square] = self._get_player_squares(player)
-            # Iterate over each of these squares and add their valid moves to 'valid_moves'.
-            [valid_moves.extend(self.get_valid_movements(square.pos)) for square in player_squares]
-
-            return valid_moves
-
-        raise ValueError("Game is finished. Neither player can move.")
+        return valid_moves
 
     def get_next_board(self, delta: Delta) -> 'Board':
         """
@@ -146,37 +96,22 @@ class Board():
 
         # Sanity checks to ensure we're calling the method correctly.
         assert self.squares[delta.move_target.pos].state == SquareState.OPEN
-        if (delta.move_origin != None):
-            assert self.squares[delta.move_origin.pos].state == SquareState.OCCUPIED
+        assert self.squares[delta.move_origin.pos].state == SquareState.OCCUPIED
 
         board_copy: Board = self.__deepcopy__()
 
         # Make sure that both the original and target squares are changed to reflect change in the given delta.
-        if (delta.move_origin == None):
-            # This delta is a placement.
-            board_copy.squares[delta.move_target.pos].occupant = Piece(delta.player)
-        else:
-            # This delta is a movement.
-            board_copy.squares[delta.move_target.pos].occupant = delta.move_origin.occupant
-            board_copy.squares[delta.move_origin.pos].occupant = None
-            board_copy.squares[delta.move_origin.pos].state = SquareState.OPEN
-
+        board_copy.squares[delta.move_target.pos].occupant = delta.move_origin.occupant
         board_copy.squares[delta.move_target.pos].state = SquareState.OCCUPIED
+        board_copy.squares[delta.move_origin.pos].occupant = None
+        board_copy.squares[delta.move_origin.pos].state = SquareState.OPEN
 
         for pos in delta.killed_square_positions:
             board_copy.squares[pos].occupant = None
             board_copy.squares[pos].state = SquareState.OPEN
 
-        for square in delta.eliminated_squares: # TODO: Make eliminated squares and new_corners also lists of positions instead?
-            board_copy.squares[square.pos].occupant = None
-            board_copy.squares[square.pos].state = SquareState.ELIMINATED
-
-        for square in delta.new_corners:
-            board_copy.squares[square.pos].occupant = None
-            board_copy.squares[square.pos].state = SquareState.CORNER
-
-        board_copy._update_game_phase()
         board_copy.round_num += 1
+        board_copy._update_game_phase()
 
         return board_copy
 
@@ -265,83 +200,6 @@ class Board():
         return [square for square in self.squares.values() if
                 square.state == SquareState.OCCUPIED and square.occupant.owner == player]
 
-    def _get_death_zone_changes(self) -> Tuple[List[Square], List[Square], List[Square]]:
-        """
-        TODO
-        Does not take into account the round num. Simply returns a tuple of (eliminated squares : new corners).
-        """
-
-        eliminated_squares: List[Square] = []
-        new_corners: List[Square] = []
-
-        original_corners: Dict[str, Square] = self._get_corner_squares()
-        eliminated_squares.extend(self._select_squares(original_corners[Board._TOP_LEFT].pos,
-                                                       original_corners[Board._TOP_RIGHT].pos, offset=Pos2D(0, 1)))
-        eliminated_squares.extend(self._select_squares(original_corners[Board._TOP_RIGHT].pos,
-                                                       original_corners[Board._BOTTOM_RIGHT].pos, offset=Pos2D(1, 1)))
-        eliminated_squares.extend(self._select_squares(original_corners[Board._BOTTOM_LEFT].pos,
-                                                       original_corners[Board._BOTTOM_RIGHT].pos, offset=Pos2D(0, 1)))
-        # TODO Consider that this means that top left will be in eliminated_squares TWICE due to the first argument
-        # to _select_squares always being inclusive.
-        eliminated_squares.extend(self._select_squares(original_corners[Board._TOP_LEFT].pos,
-                                                       original_corners[Board._BOTTOM_LEFT].pos, offset=Pos2D(1, 0)))
-
-        new_corners.append(self.squares[original_corners[Board._TOP_LEFT].pos + Pos2D(1, 1)])
-        new_corners.append(self.squares[original_corners[Board._TOP_RIGHT].pos + Pos2D(-1, 1)])
-        new_corners.append(self.squares[original_corners[Board._BOTTOM_LEFT].pos + Pos2D(1, -1)])
-        new_corners.append(self.squares[original_corners[Board._BOTTOM_RIGHT].pos + Pos2D(-1, -1)])
-
-        # Now identify all squares that will be eliminated as a result of the new corners.
-        killed_squares: List[Square] = []
-        for corner in new_corners:
-            surr_occupied_squares: List[Square] = [square for square in self._get_surrounding_squares(corner.pos) if
-                                                   square.state == SquareState.OCCUPIED]
-            for adj_square in surr_occupied_squares:
-                opposite_square: Square = self.squares.get(self._get_opposite_pos(corner.pos, adj_square.pos))
-                if (opposite_square != None and  opposite_square.state == SquareState.OCCUPIED and
-                        adj_square.occupant.owner != opposite_square.occupant.owner):
-                    killed_squares.append(adj_square)
-
-        return (eliminated_squares, new_corners, killed_squares)
-
-    def _get_corner_squares(self) -> Dict[str, Square]:
-        """
-        TODO
-        :return:
-        """
-        corners: Dict[str, Square] = {}
-        counter: int = 0
-        top_left_corner: Square = self.squares[Pos2D(counter, counter)]
-        while (top_left_corner.state != SquareState.CORNER):
-            counter += 1
-            top_left_corner = self.squares[Pos2D(counter, counter)]
-
-        corners[Board._TOP_LEFT] = top_left_corner
-        dist_between_corners: int = Board._NUM_COLS - 2 * counter - 1
-        corners[Board._TOP_RIGHT] = self.squares[top_left_corner.pos + Pos2D(dist_between_corners, 0)]
-        corners[Board._BOTTOM_LEFT] = self.squares[top_left_corner.pos + Pos2D(0, dist_between_corners)]
-        corners[Board._BOTTOM_RIGHT] = \
-            self.squares[top_left_corner.pos + Pos2D(dist_between_corners, dist_between_corners)]
-
-        return corners
-
-    def _select_squares(self, top_left_corner: Pos2D, bottom_right_corner: Pos2D, offset: Pos2D = Pos2D(0, 0)) -> \
-            List[Square]:
-        """
-        TODO: Make inclusive or exclusive?
-        :param top_left_corner:
-        :param bottom_right_corner:
-        :return:
-        """
-        squares: List[Square] = []
-
-        # offset can make the selection inclusive.
-        for row_i in range(top_left_corner.y, bottom_right_corner.y + offset.y):
-            for col_i in range(top_left_corner.x, bottom_right_corner.x + offset.x):
-                squares.append(self.squares[Pos2D(col_i, row_i)])
-
-        return squares
-
     def _update_game_phase(self):
         """
         TODO
@@ -351,29 +209,10 @@ class Board():
         :return:
         """
 
-        if (self.round_num == Board._MOVEMENT_PHASE_START_ROUND):
-            self.phase = GamePhase.MOVEMENT
-
-        if (self.phase == GamePhase.PLACEMENT):
-            # We're still in the placement phase, so neither player can lose due to a lack of pieces on the board.
-            # End the method call, making no changes to the phase.
-            return
-
         player_square_counts: Dict[Player, int] = {Player.WHITE: len(self._get_player_squares(Player.WHITE)),
                                                    Player.BLACK: len(self._get_player_squares(Player.BLACK))}
-
-        if (player_square_counts[Player.WHITE] < Board._MIN_NUM_PIECES_BEFORE_LOSS and
-                player_square_counts[Player.BLACK] < Board._MIN_NUM_PIECES_BEFORE_LOSS):
-            # Tie
-            self.winner = None
-            self.phase = GamePhase.FINISHED
-        elif (player_square_counts[Player.BLACK] < Board._MIN_NUM_PIECES_BEFORE_LOSS):
-            # White wins
-            self.winner = Player.WHITE
-            self.phase = GamePhase.FINISHED
-        elif (player_square_counts[Player.WHITE] < Board._MIN_NUM_PIECES_BEFORE_LOSS):
-            # Black wins
-            self.winner = Player.BLACK
+        if (player_square_counts[Player.WHITE] < Board._MIN_NUM_PIECES_BEFORE_LOSS or
+            player_square_counts[Player.BLACK] < Board._MIN_NUM_PIECES_BEFORE_LOSS):
             self.phase = GamePhase.FINISHED
 
     def _init_squares(self) -> Dict[Pos2D, Square]:
@@ -414,20 +253,17 @@ class Board():
         squares: Dict[Pos2D, Square] = deepcopy(self.squares)
         round_num: int = self.round_num
         phase: GamePhase = self.phase
-        winner: Player = self.winner
 
-        return Board(squares, round_num, phase, winner)
+        return Board(squares, round_num, phase)
 
     @staticmethod
-    def create_from_string(round_num: int, game_phase: GamePhase, winner: Player):
-        new_board: Board = Board(None, round_num, game_phase, winner)
+    def create_from_string(round_num: int, game_phase: GamePhase):
+        new_board: Board = Board(None, round_num, game_phase)
         for row_i in range(Board._NUM_ROWS):
             row_string: List[str] = input().split(" ")
             for col_i, char in enumerate(row_string):
                 pos: Pos2D = Pos2D(col_i, row_i)
-                if (char == SquareState.ELIMINATED.getRepresentation()):
-                    new_board.squares[pos] = Square(pos, None, SquareState.ELIMINATED)
-                elif (char == SquareState.CORNER.getRepresentation()):
+                if (char == SquareState.CORNER.getRepresentation()):
                     new_board.squares[pos] = Square(pos, None, SquareState.CORNER)
                 elif (char == SquareState.OPEN.getRepresentation()):
                     new_board.squares[pos] = Square(pos, None, SquareState.OPEN)

@@ -38,4 +38,4 @@ class Square():
         if (not isinstance(other, Square)):
             return False
 
-        return (self.pos, self.occupant, self.state) == (other.pos, other.occupant, other.state) if isinstance(other, Square) else False #TODO This is ugly
+        return (self.pos, self.occupant, self.state) == (other.pos, other.occupant, other.state)
