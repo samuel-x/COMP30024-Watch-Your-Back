@@ -38,6 +38,13 @@ class Delta():
         self.eliminated_squares = eliminated_squares
         self.new_corners = new_corners
 
+    def __str__(self):
+        player: str = self.player.__str__()
+        if (self.move_origin == None):
+            return player + ": -> {}".format(self.move_target.pos)
+        else:
+            return player + ": {} -> {}".format(self.move_origin.pos, self.move_target.pos)
+
     def __eq__(self, other: 'Delta'):
         """
         TODO Make this nicer (and for Square?)

@@ -14,7 +14,9 @@ class Board():
     """
     A structure that represents the board at a given point.
     """
+
     # TODO Move these into Utilities? Elsewhere?
+    # Directional/locational constants.
     _TOP_LEFT: str = "top left"
     _TOP_RIGHT: str = "top right"
     _BOTTOM_LEFT: str = "bottom left"
@@ -22,12 +24,16 @@ class Board():
     _HORIZONTAL: str = "horizontal"
     _VERTICAL: str = "vertical"
     _OMNI: str = "omnidirectional" # TODO Better name?
+
     _NUM_COLS: int = 8
     _NUM_ROWS: int = 8
     # TODO: Better way to specify placement zone?
+    # Two lists, each containing two Pos2Ds, that mark the rectangular zones that white or black can place pieces in
+    # during the placement phase. Each list contains the upper-left hand corner and the bottom-right hand corner for
+    # their respective zones.
     _WHITE_PLACEMENT_ZONE_CORNER_POSITIONS: List[Pos2D] = [Pos2D(0, 0), Pos2D(_NUM_COLS, _NUM_ROWS - 2)]
     _BLACK_PLACEMENT_ZONE_CORNER_POSITIONS: List[Pos2D] = [Pos2D(0, 2), Pos2D(_NUM_COLS, _NUM_ROWS)]
-    _MOVING_PHASE_ROUND_START = 24
+    _MOVEMENT_PHASE_START_ROUND = 24
     _DEATH_ZONE_ROUNDS: List[int] = [128, 192]
     _MIN_NUM_PIECES_BEFORE_LOSS = 2
 
@@ -52,8 +58,8 @@ class Board():
 
     def get_valid_placements(self, player: Player) -> List[Delta]:
         """
-        TODO
-        :return:
+        Returns a list of deltas (or placements) that a given Player can do on the caller 'Board' instance if it is the
+        placement phase.
         """
 
         player_zone_corner_positions: List[Pos2D]
@@ -345,7 +351,7 @@ class Board():
         :return:
         """
 
-        if (self.round_num == Board._MOVING_PHASE_ROUND_START):
+        if (self.round_num == Board._MOVEMENT_PHASE_START_ROUND):
             self.phase = GamePhase.MOVEMENT
 
         if (self.phase == GamePhase.PLACEMENT):
@@ -411,3 +417,23 @@ class Board():
         winner: Player = self.winner
 
         return Board(squares, round_num, phase, winner)
+
+    @staticmethod
+    def create_from_string(round_num: int, game_phase: GamePhase, winner: Player):
+        new_board: Board = Board(None, round_num, game_phase, winner)
+        for row_i in range(Board._NUM_ROWS):
+            row_string: List[str] = input().split(" ")
+            for col_i, char in enumerate(row_string):
+                pos: Pos2D = Pos2D(col_i, row_i)
+                if (char == SquareState.ELIMINATED.getRepresentation()):
+                    new_board.squares[pos] = Square(pos, None, SquareState.ELIMINATED)
+                elif (char == SquareState.CORNER.getRepresentation()):
+                    new_board.squares[pos] = Square(pos, None, SquareState.CORNER)
+                elif (char == SquareState.OPEN.getRepresentation()):
+                    new_board.squares[pos] = Square(pos, None, SquareState.OPEN)
+                elif (char == Player.WHITE.getRepresentation()):
+                    new_board.squares[pos] = Square(pos, Piece(Player.WHITE), SquareState.OCCUPIED)
+                elif (char == Player.BLACK.getRepresentation()):
+                    new_board.squares[pos] = Square(pos, Piece(Player.BLACK), SquareState.OCCUPIED)
+
+        return new_board
