@@ -1,3 +1,5 @@
+import time
+
 from Classes.AlphaBetaAgent import AlphaBetaAgent
 from Classes.Board import Board
 from Classes.MCTSAgent import MCTSAgent
@@ -12,8 +14,10 @@ def main():
     # mcts_agent: MCTSAgent = MCTSAgent(tree_root, seed=30024)
     # mcts_agent.train(20)
 
-    # alpha_beta_agent = AlphaBetaAgent(Board.create_from_string(31, GamePhase.MOVEMENT, None), 30024)
-    alpha_beta_agent = AlphaBetaAgent(None, 30024)
+    alpha_beta_agent = AlphaBetaAgent(Board.create_from_string(1, GamePhase.MOVEMENT, None), 30024)
+    # alpha_beta_agent = AlphaBetaAgent(None, 30024)
+    start = time.time()
     alpha_beta_agent.run()
+    print(time.time() - start)
 
 main()

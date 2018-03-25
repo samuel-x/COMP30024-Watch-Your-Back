@@ -35,7 +35,7 @@ class Board():
     _BLACK_PLACEMENT_ZONE_CORNER_POSITIONS: List[Pos2D] = [Pos2D(0, 2), Pos2D(_NUM_COLS, _NUM_ROWS)]
     _MOVEMENT_PHASE_START_ROUND = 24
     _DEATH_ZONE_ROUNDS: List[int] = [128, 192]
-    _MIN_NUM_PIECES_BEFORE_LOSS = 2
+    _MIN_NUM_PIECES_BEFORE_LOSS = 1 # TODO Should be 2 (but only 1 in massacre)
 
     # Structure that contains the squares.
     squares: Dict[Pos2D, Square]

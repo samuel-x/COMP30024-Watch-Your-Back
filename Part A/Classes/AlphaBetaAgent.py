@@ -1,5 +1,5 @@
 import random
-from typing import List, Dict, Tuple
+from typing import List, Tuple
 
 from Classes.Board import Board
 from Classes.Delta import Delta
@@ -7,6 +7,7 @@ from Classes.Node import Node
 from Enums.GamePhase import GamePhase
 from Enums.Player import Player
 from Misc.Utilities import Utilities as Utils
+
 
 class AlphaBetaAgent():
 
@@ -26,19 +27,28 @@ class AlphaBetaAgent():
     def run(self):
         print(self._board)
 
-        is_maximizer: bool = False
+        is_maximizer: bool = True
         while (self._board.phase != GamePhase.FINISHED):
+            # if (not is_maximizer): # TODO Uncomment when doing massacre mode.
+            #     is_maximizer = not is_maximizer
+            #     self._board.round_num -= 1
+            #     continue
 
             deltas: List[Delta] = self._board.get_all_valid_moves(Utils.get_player(self._board.round_num))
             delta_scores: List[Tuple[Delta, float]] = []
             for delta in deltas:
-                delta_scores.append((delta, AlphaBetaAgent.alphabeta(self._board.get_next_board(delta), Node(self._node, delta), 2, -9999, 9999, is_maximizer)))
+                delta_scores.append((delta, AlphaBetaAgent.alphabeta(self._board.get_next_board(delta), Node(self._node, delta), 4, -9999, 9999, not is_maximizer)))
+
+            # If there are multiple deltas with the same high-score, this will ensure that a random one is picked so
+            # that it's not deterministic every time the game starts (which is an issue with simple
+            # white - black heuristic).
+            random.shuffle(delta_scores)
 
             if (len(set([delta_score[1] for delta_score in delta_scores])) == 1):
                 best_delta: Tuple[Delta, float] = random.choice(delta_scores)
-            elif not is_maximizer:
-                best_delta: Tuple[Delta, float] = max(delta_scores, key=lambda x:x[1])
             elif is_maximizer:
+                best_delta: Tuple[Delta, float] = max(delta_scores, key=lambda x:x[1])
+            elif not is_maximizer:
                 best_delta: Tuple[Delta, float] = min(delta_scores, key=lambda x:x[1])
 
             self._board = self._board.get_next_board(best_delta[0])
@@ -76,6 +86,15 @@ class AlphaBetaAgent():
 
     @staticmethod
     def get_heuristic_value(board: Board):
+        WHITE_VICTORY: int = 9999
+        BLACK_VICTORY: int = -9999
+
+        if (board.phase == GamePhase.FINISHED):
+            if (board.winner == Player.WHITE):
+                return WHITE_VICTORY
+            if (board.winner == Player.BLACK):
+                return BLACK_VICTORY
+
         num_white_pieces: int = len(board._get_player_squares(Player.WHITE))
         num_black_pieces: int = len(board._get_player_squares(Player.BLACK))
         return num_white_pieces - num_black_pieces
