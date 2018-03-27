@@ -1,4 +1,5 @@
 import random
+#import difflib
 from typing import List, Tuple
 
 from Classes.Board import Board
@@ -6,6 +7,7 @@ from Classes.Delta import Delta
 from Classes.Node import Node
 from Enums.GamePhase import GamePhase
 from Enums.Player import Player
+
 
 
 class AlphaBetaAgent():
@@ -64,6 +66,13 @@ class AlphaBetaAgent():
     def get_heuristic_value(board: Board):
         # if (board.phase == GamePhase.FINISHED):
         #     return 9999 - board.round_num
+
         num_white_pieces: int = len(board._get_player_squares(Player.WHITE))
         num_black_pieces: int = len(board._get_player_squares(Player.BLACK))
-        return num_white_pieces - num_black_pieces - board.round_num
+
+        # Maybe we can try changing the heuristic - if your pieces are closer to the white pieces that's better
+        # Maybe something like below but towards boards where other pieces are killed
+        # dist = difflib.SequenceMatcher(None, str(board).replace("O", "-"), str(board).replace("@","-"))
+        # Look at massacre sample 3 to see bugs
+
+        return (num_white_pieces - num_black_pieces - board.round_num) #* dist.ratio()
