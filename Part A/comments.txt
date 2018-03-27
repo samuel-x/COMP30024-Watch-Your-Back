@@ -1,0 +1,13 @@
+Discussion goes here.
+
+Structure Decisions:
+Most of the decisions made regarding the object oriented nature were made with Part B in mind.
+By splitting our program into classes we were able to better represent the board and it's pieces and therefore
+manipulate the board more easily.
+...
+
+Algorithmic Decisions:
+For Part A we originally intended to use a Monte-Carlo Tree Search as it was used in many recent competitive AI programs,
+including Go, chess and shogi. However this proved too complex and resource heavy and decided for Part A it would be
+more suitable to use the AlphaBeta pruning instead.
+...
