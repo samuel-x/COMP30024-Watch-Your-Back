@@ -43,6 +43,12 @@ class Board():
         self.phase = phase
 
     def get_num_moves(self, player: Player) -> int:
+        """
+        This method takes a player and returns the number of possible moves that they can take.
+        This is required for Part A question 1 as defined in the spec.
+        :param player:
+        :return:
+        """
         player_squares: List[Square] = self._get_player_squares(player)
         count: int = 0
         for player_square in player_squares:
@@ -59,6 +65,7 @@ class Board():
 
     def get_valid_movements(self, pos: Pos2D) -> List[Delta]:
         """
+        This method takes a position on the board and returns a list of possible moves (or 'deltas') from that position.
         :param pos:
         :return:
         """
@@ -102,9 +109,9 @@ class Board():
 
         return valid_moves
 
-    def get_next_board(self, delta: Delta) -> 'Board':
+    def get_next_board(self, delta: Delta) -> 'Board': # <- 'Board' Is this really normal?
         """
-        TODO
+        This method takes a delta and creates a new board from this delta. This is used in order to update the game.
         :param delta:
         :return:
         """
@@ -148,8 +155,24 @@ class Board():
 
         return [square for square in adjacent_squares if square != None]
 
+    def _check_opposite_squares(self, moving_piece: Piece, opposite_square: Square) -> bool:
+        """
+        This method checks opposite squares for enemy pieces or corners.
+        :param moving_piece:
+        :param opposite_square:
+        :return:
+        """
+        return (opposite_square != None and
+                    (opposite_square.state == SquareState.OCCUPIED and
+                    opposite_square.occupant.owner == moving_piece.owner and
+                    opposite_square.occupant != moving_piece) or
+                        opposite_square != None and
+                        opposite_square.state == SquareState.CORNER)
+
     def _get_killed_positions(self, moving_piece: Piece, moving_piece_target_pos: Pos2D) -> List[Pos2D]:
         """
+        This method takes a piece that is moving and it's target position and calculates a list of positions
+        where the piece will be killed by enemy pieces.
         TODO Mention about how it handles the moving piece being killed.
         :param moving_piece:
         :param moving_piece_target_pos:
@@ -158,35 +181,32 @@ class Board():
         killed_positions: List[Pos2D] = []
 
         # Short for 'horizontally surrounding squares'.
-        horiz_surr_squares: List[Square] = self._get_surrounding_squares(moving_piece_target_pos, Board._HORIZONTAL)
-        vert_surr_squares: List[Square] = self._get_surrounding_squares(moving_piece_target_pos, Board._VERTICAL)
+        x_surround: List[Square] = self._get_surrounding_squares(moving_piece_target_pos, Board._HORIZONTAL)
+        y_surround: List[Square] = self._get_surrounding_squares(moving_piece_target_pos, Board._VERTICAL)
 
         # Add any surrounding squares that would be killed if the given piece moved to the given location.
-        for surrounding_square in [*horiz_surr_squares, *vert_surr_squares]:
+        for surrounding_square in [*x_surround, *y_surround]:
             if (surrounding_square.state == SquareState.OCCUPIED and
                     surrounding_square.occupant.owner != moving_piece.owner):
                 opposite_square: Square = \
                     self.squares.get(self._get_opposite_pos(moving_piece_target_pos, surrounding_square.pos))
-                if (opposite_square != None and (opposite_square.state == SquareState.OCCUPIED and
-                                                 opposite_square.occupant.owner == moving_piece.owner and
-                                                 opposite_square.occupant != moving_piece) or
-                        opposite_square != None and opposite_square.state == SquareState.CORNER): # TODO Can this be written better?
+                if self._check_opposite_squares(moving_piece, opposite_square): # TODO Can this be written better?
                     killed_positions.append(surrounding_square.pos)
 
         # Now check if the piece that is moving gets killed. This would be a stupid move, but it could happen.
 
         # Remove references to surrounding squares if they are going to be killed, as they then cannot kill the moving
         # piece.
-        [horiz_surr_squares.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in horiz_surr_squares] # TODO: Make this nicer?
-        [vert_surr_squares.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in vert_surr_squares]
+        [x_surround.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in x_surround] # TODO: Make this nicer?
+        [y_surround.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in y_surround] # I looked up using Filter() instead but apparently it's recommended list comprehensions are better
 
         # Filter out squares from both lists that are not occupied by enemy pieces or aren't corners.
-        potential_horiz_killer_squares = [square for square in horiz_surr_squares if (square.state == SquareState.OCCUPIED and
+        potential_x_killer_squares = [square for square in x_surround if (square.state == SquareState.OCCUPIED and
                                     square.occupant.owner != moving_piece.owner) or square.state == SquareState.CORNER]
-        potential_vert_killer_squares = [square for square in vert_surr_squares if (square.state == SquareState.OCCUPIED and
+        potential_y_killer_squares = [square for square in y_surround if (square.state == SquareState.OCCUPIED and
                                     square.occupant.owner != moving_piece.owner) or square.state == SquareState.CORNER]
 
-        if (len(potential_horiz_killer_squares) == 2 or len(potential_vert_killer_squares) == 2):
+        if (len(potential_x_killer_squares) == 2 or len(potential_y_killer_squares) == 2):
             killed_positions.append(moving_piece_target_pos)
 
         return killed_positions
@@ -208,7 +228,7 @@ class Board():
 
     def _get_player_squares(self, player: Player) -> List[Square]:
         """
-        TODO
+        This method takes a player and returns all the squares that their pieces currently reside on.
         :param player:
         :return:
         """
@@ -232,7 +252,7 @@ class Board():
 
     def _init_squares(self) -> Dict[Pos2D, Square]:
         """
-        TODO
+        This method creates all the squares in the board.
         :return:
         """
         squares: Dict[Pos2D, Square] = {}
@@ -273,6 +293,13 @@ class Board():
 
     @staticmethod
     def create_from_string(round_num: int, game_phase: GamePhase):
+        """
+        This method takes a string (that is a representation of the board in x-y format) and returns a board object.
+        This also defines the round number and the game phase from the board.
+        :param round_num:
+        :param game_phase:
+        :return:
+        """
         new_board: Board = Board(None, round_num, game_phase)
         for row_i in range(Board._NUM_ROWS):
             row_string: List[str] = input().split(" ")

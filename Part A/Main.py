@@ -1,3 +1,4 @@
+# This will be the file to run the program.
 import time
 
 from Classes.AlphaBetaAgent import AlphaBetaAgent
@@ -5,7 +6,6 @@ from Classes.Board import Board
 from Enums.GamePhase import GamePhase
 
 
-# This will be the file to run the program.
 from Enums.Player import Player
 
 MOVES = "Moves"
@@ -21,11 +21,11 @@ def main():
         print(board.get_num_moves(Player.WHITE))
         print(board.get_num_moves(Player.BLACK))
     elif (mode == MASSACRE):
-        start = time.time() # TODO Delete
+        start = time.time()  # TODO Delete
         alpha_beta_agent = AlphaBetaAgent(board, 30024)
         alpha_beta_agent.massacre()
         print(time.time() - start)
 
 
-
 main()
+

@@ -20,6 +20,10 @@ class AlphaBetaAgent():
         random.seed(seed)
 
     def massacre(self):
+        """
+        This method runs the algorithm until all enemy pieces are killed or there is a draw.
+        :return:
+        """
         print(self._board)
 
         while (self._board.phase != GamePhase.FINISHED):
@@ -49,7 +53,7 @@ class AlphaBetaAgent():
             return [AlphaBetaAgent.get_heuristic_value(board)] + historical_scores
 
         deltas: List[Delta] = board.get_all_valid_moves(Player.WHITE)
-        best_score: List[float] = [-9999] + historical_scores
+        best_score: List[float] = [-999999] + historical_scores
         for delta in deltas:
             child_node: Node = Node(node, delta)
             best_score = max(best_score, AlphaBetaAgent.alphabeta(board.get_next_board(delta), child_node, depth - 1, historical_scores))
