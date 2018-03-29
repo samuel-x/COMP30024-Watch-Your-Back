@@ -18,6 +18,8 @@ class AlphaBetaAgent():
     _node: Node
     _init_node: Node = Node(None, None)
 
+    recent_board_history: List[str] = []
+
     def __init__(self, start_board: Board = None, seed: int = random.randint(0, 999999)):
         self._board = start_board
         self._node = self._init_node
@@ -36,7 +38,8 @@ class AlphaBetaAgent():
             delta_scores: List[Tuple[Delta, List[float]]] = []
             for delta in deltas:
                 delta_scores.append((delta, AlphaBetaAgent.alphabeta(self._board.get_next_board(delta),
-                                                                     Node(self._node, delta), 1, [])))
+                                                                     Node(self._node, delta), 1, [],
+                                                                     self.recent_board_history)))
 
             # If there are multiple deltas with the same high-score, this will ensure that a random one is picked so
             # that it's not deterministic every time the game starts (which is an issue with simple
@@ -48,30 +51,39 @@ class AlphaBetaAgent():
             self._board = self._board.get_next_board(best_delta[0])
             self._node = Node(self._node, best_delta[0])
 
+            self.recent_board_history =  [self._board.__str__()] + self.recent_board_history[:1]
+
             print("{:3}: {} ({})".format(self._board.round_num - 1, best_delta[0], best_delta[1]))
             print(self._board)
 
     @staticmethod
-    def alphabeta(board: Board, node: Node, depth: int, historical_scores: List[float]) -> List[float]:
+    def alphabeta(board: Board, node: Node, depth: int, historical_scores: List[float],
+                  recent_boards: List[str]) -> List[float]:
         if (depth == 0 or board.phase == GamePhase.FINISHED):
-            return [AlphaBetaAgent.get_heuristic_value(board)] + historical_scores
+            return [AlphaBetaAgent.get_heuristic_value(board, recent_boards)] + historical_scores
 
         deltas: List[Delta] = board.get_all_valid_moves(Player.WHITE)
         best_score: List[float] = [-999999] + historical_scores
         for delta in deltas:
             child_node: Node = Node(node, delta)
-            best_score = max(best_score, AlphaBetaAgent.alphabeta(board.get_next_board(delta), child_node, depth - 1, historical_scores))
+            best_score = max(best_score, AlphaBetaAgent.alphabeta(board.get_next_board(delta), child_node, depth - 1,
+                                                                  historical_scores, recent_boards))
 
-        return  historical_scores + best_score + [AlphaBetaAgent.get_heuristic_value(board)]
+        return  historical_scores + best_score + [AlphaBetaAgent.get_heuristic_value(board, recent_boards)]
 
     @staticmethod
-    def get_heuristic_value(board: Board):
+    def get_heuristic_value(board: Board, history: List[str]):
+        #print("WHOA", history)
+        if (board.__str__() in history):
+            return -9999
+
         black_squares: List[Square] = board.get_player_squares(Player.BLACK)
         white_squares: List[Square] = board.get_player_squares(Player.WHITE)
 
         manhatten_dist_sum: int = 0
         if (len(black_squares) > 0):
             black_square: Square = black_squares[0]
+            print("target:", black_square.pos)
             for white_square in white_squares:
                 difference: Pos2D = (black_square.pos - white_square.pos)
                 manhatten_dist_sum += abs(difference.x) + abs(difference.y)
