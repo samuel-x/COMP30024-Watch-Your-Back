@@ -21,6 +21,8 @@ class IDSAgent:
     _DIST_WEIGHT: float = 0.001
     # We really don't want to repeat board states. When a repeat board is
     _REPEAT_BOARD: int = -99999
+    # Score-decimal place rounding. Used to prevent floating point imprecision from interfering with move decisions.
+    _SCORE_NUM_ROUNDING: int = 10
     # The length of the history of recent board states the agent can remember. Used to avoid repeat moves.
     _BOARD_MEMORY: int = 256
 
@@ -48,8 +50,8 @@ class IDSAgent:
             delta_scores: List[Tuple[Delta, List[float]]] = []
             score: List[float]
             for delta in deltas:
-                score = IDSAgent.score_possible_boards(self._board.get_next_board(delta), Node(self._node, delta), 3,
-                                                       self.recent_board_history)
+                score = IDSAgent.get_board_score(self._board.get_next_board(delta), Node(self._node, delta), 0,
+                                                 self.recent_board_history)
                 if IDSAgent._REPEAT_BOARD not in score:
                     delta_scores.append((delta, score))
 
@@ -68,7 +70,7 @@ class IDSAgent:
             print(self._board)
 
     @staticmethod
-    def score_possible_boards(board: Board, node: Node, depth: int, recent_boards: List[str]) -> List[float]:
+    def get_board_score(board: Board, node: Node, depth: int, recent_boards: List[str]) -> List[float]:
         if (depth == 0 or board.phase == GamePhase.FINISHED):
             return [IDSAgent.get_heuristic_value(board, recent_boards)]
 
@@ -76,8 +78,8 @@ class IDSAgent:
         best_score: List[float] = [-999999]
         for delta in deltas:
             child_node: Node = Node(node, delta)
-            best_score = max(best_score, IDSAgent.score_possible_boards(board.get_next_board(delta), child_node, depth - 1,
-                                                                        recent_boards))
+            best_score = max(best_score, IDSAgent.get_board_score(board.get_next_board(delta), child_node, depth - 1,
+                                                                  recent_boards))
 
         return best_score + [IDSAgent.get_heuristic_value(board, recent_boards)]
 
@@ -98,6 +100,6 @@ class IDSAgent:
 
         num_white_pieces: int = len(white_squares)
         num_black_pieces: int = len(black_squares)
-        return IDSAgent._WHITE_WEIGHT * num_white_pieces - \
+        return round(IDSAgent._WHITE_WEIGHT * num_white_pieces - \
                IDSAgent._BLACK_WEIGHT * num_black_pieces - \
-               IDSAgent._DIST_WEIGHT * manhattan_dist_sum
+               IDSAgent._DIST_WEIGHT * manhattan_dist_sum, IDSAgent._SCORE_NUM_ROUNDING)
