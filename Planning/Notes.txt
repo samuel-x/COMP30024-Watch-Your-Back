@@ -29,6 +29,3 @@
 	- Documentation
 	- Refactoring ugly code.
 	- Making sure that rounds where a player cannot move are handled appropriately (no crashing!)
-	- Fix bug where jumping over a piece to put yourself between an enemy and a corner doesn't kill you. 
-		- See Bug.png.
-		- Seed 30024, simulation 100.

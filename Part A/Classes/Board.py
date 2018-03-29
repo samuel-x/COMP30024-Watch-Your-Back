@@ -49,7 +49,7 @@ class Board():
         :param player:
         :return:
         """
-        player_squares: List[Square] = self._get_player_squares(player)
+        player_squares: List[Square] = self.get_player_squares(player)
         count: int = 0
         for player_square in player_squares:
             surr_squares = self._get_surrounding_squares(player_square.pos)
@@ -102,7 +102,7 @@ class Board():
         valid_moves: List[Delta] = []
 
         # Get a list of all squares that are occupied by the given player.
-        player_squares: List[Square] = self._get_player_squares(player)
+        player_squares: List[Square] = self.get_player_squares(player)
 
         # Iterate over each of these squares and add their valid moves to 'valid_moves'.
         [valid_moves.extend(self.get_valid_movements(square.pos)) for square in player_squares]
@@ -136,6 +136,16 @@ class Board():
         board_copy._update_game_phase()
 
         return board_copy
+
+
+    def get_player_squares(self, player: Player) -> List[Square]:
+        """
+        TODO
+        :param player:
+        :return:
+        """
+        return [square for square in self.squares.values() if
+                square.state == SquareState.OCCUPIED and square.occupant.owner == player]
 
     def _get_surrounding_squares(self, pos: Pos2D, direction: str = _OMNI) -> List[Square]:
         """
@@ -226,15 +236,6 @@ class Board():
 
         return second_pos + delta
 
-    def _get_player_squares(self, player: Player) -> List[Square]:
-        """
-        This method takes a player and returns all the squares that their pieces currently reside on.
-        :param player:
-        :return:
-        """
-        return [square for square in self.squares.values() if
-                square.state == SquareState.OCCUPIED and square.occupant.owner == player]
-
     def _update_game_phase(self):
         """
         TODO
@@ -244,8 +245,8 @@ class Board():
         :return:
         """
 
-        player_square_counts: Dict[Player, int] = {Player.WHITE: len(self._get_player_squares(Player.WHITE)),
-                                                   Player.BLACK: len(self._get_player_squares(Player.BLACK))}
+        player_square_counts: Dict[Player, int] = {Player.WHITE: len(self.get_player_squares(Player.WHITE)),
+                                                   Player.BLACK: len(self.get_player_squares(Player.BLACK))}
         if (player_square_counts[Player.WHITE] < Board._MIN_NUM_PIECES_BEFORE_LOSS or
             player_square_counts[Player.BLACK] < Board._MIN_NUM_PIECES_BEFORE_LOSS):
             self.phase = GamePhase.FINISHED

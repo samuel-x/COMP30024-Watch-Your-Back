@@ -5,6 +5,8 @@ from typing import List, Tuple
 from Classes.Board import Board
 from Classes.Delta import Delta
 from Classes.Node import Node
+from Classes.Pos2D import Pos2D
+from Classes.Square import Square
 from Enums.GamePhase import GamePhase
 from Enums.Player import Player
 
@@ -64,15 +66,16 @@ class AlphaBetaAgent():
 
     @staticmethod
     def get_heuristic_value(board: Board):
-        # if (board.phase == GamePhase.FINISHED):
-        #     return 9999 - board.round_num
+        black_squares: List[Square] = board.get_player_squares(Player.BLACK)
+        white_squares: List[Square] = board.get_player_squares(Player.WHITE)
 
-        num_white_pieces: int = len(board._get_player_squares(Player.WHITE))
-        num_black_pieces: int = len(board._get_player_squares(Player.BLACK))
+        manhatten_dist_sum: int = 0
+        if (len(black_squares) > 0):
+            black_square: Square = black_squares[0]
+            for white_square in white_squares:
+                difference: Pos2D = (black_square.pos - white_square.pos)
+                manhatten_dist_sum += abs(difference.x) + abs(difference.y)
 
-        # Maybe we can try changing the heuristic - if your pieces are closer to the white pieces that's better
-        # Maybe something like below but towards boards where other pieces are killed
-        # dist = difflib.SequenceMatcher(None, str(board).replace("O", "-"), str(board).replace("@","-"))
-        # Look at massacre sample 3 to see bugs
-
-        return (num_white_pieces - num_black_pieces - board.round_num) #* dist.ratio()
+        num_white_pieces: int = len(white_squares)
+        num_black_pieces: int = len(black_squares)
+        return num_white_pieces - num_black_pieces - board.round_num - manhatten_dist_sum * 0.001
