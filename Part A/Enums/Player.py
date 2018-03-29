@@ -4,8 +4,8 @@ class Player(Enum):
     """
     Used to represent a player.
     """
-    _whiteRepresentation = 'W' # TODO Change these to O and @ respectively before submission.
-    _blackRepresentation = 'B'
+    _whiteRepresentation = 'O' # TODO Change these to O and @ respectively before submission.
+    _blackRepresentation = '@'
 
     WHITE = 0       # White player.
     BLACK = 1       # Black player.
