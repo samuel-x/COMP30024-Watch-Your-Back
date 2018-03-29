@@ -19,11 +19,10 @@ class Board():
     # Directional/locational constants.
     _HORIZONTAL: str = "horizontal"
     _VERTICAL: str = "vertical"
-    _OMNI: str = "omnidirectional" # TODO Better name?
+    _OMNI: str = "omnidirectional"
 
     _NUM_COLS: int = 8
     _NUM_ROWS: int = 8
-    # TODO: Better way to specify placement zone?
     _MIN_NUM_PIECES_BEFORE_LOSS = 1
 
     # Structure that contains the squares.

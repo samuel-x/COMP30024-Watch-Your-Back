@@ -1,4 +1,4 @@
-# As defined in the spec, part A should be submitted with a .py file named parta.py as an entry point to the program
+# This will be the file to run the program.
 import time
 
 from Classes.AlphaBetaAgent import AlphaBetaAgent
@@ -11,7 +11,7 @@ from Enums.Player import Player
 MOVES = "Moves"
 MASSACRE = "Massacre"
 
-def main():
+def parta():
 
     board: Board = Board.create_from_string(1, GamePhase.MOVEMENT)
 
@@ -27,5 +27,5 @@ def main():
         print(time.time() - start)
 
 
-main()
+parta()
 

@@ -14,6 +14,11 @@ from Enums.Player import Player
 
 class AlphaBetaAgent():
 
+    _WHITE_WEIGHT: float = 1.1
+    _BLACK_WEIGHT: float = 1.0
+    _DIST_WEIGHT: float = 0.001
+    _REPEAT_MOVE: int = -99999
+
     _board: Board
     _node: Node
     _init_node: Node = Node(None, None)
@@ -38,9 +43,11 @@ class AlphaBetaAgent():
             delta_scores: List[Tuple[Delta, List[float]]] = []
             for delta in deltas:
                 delta_scores.append((delta, AlphaBetaAgent.alphabeta(self._board.get_next_board(delta),
-                                                                     Node(self._node, delta), 1, [],
+                                                                     Node(self._node, delta), 0, [],
                                                                      self.recent_board_history)))
 
+            # Filter out anything with repeat moves.
+            delta_scores = [(delta, scores) for delta, scores in delta_scores if AlphaBetaAgent._REPEAT_MOVE not in scores]
             # If there are multiple deltas with the same high-score, this will ensure that a random one is picked so
             # that it's not deterministic every time the game starts (which is an issue with simple
             # white - black heuristic).
@@ -51,7 +58,7 @@ class AlphaBetaAgent():
             self._board = self._board.get_next_board(best_delta[0])
             self._node = Node(self._node, best_delta[0])
 
-            self.recent_board_history =  [self._board.__str__()] + self.recent_board_history[:1]
+            self.recent_board_history =  [self._board.__str__()] + self.recent_board_history[:24]
 
             print("{:3}: {} ({})".format(self._board.round_num - 1, best_delta[0], best_delta[1]))
             print(self._board)
@@ -75,19 +82,21 @@ class AlphaBetaAgent():
     def get_heuristic_value(board: Board, history: List[str]):
         #print("WHOA", history)
         if (board.__str__() in history):
-            return -9999
+            return AlphaBetaAgent._REPEAT_MOVE
+
+        #print(board.__str__(), "is NOT in", history)
 
         black_squares: List[Square] = board.get_player_squares(Player.BLACK)
         white_squares: List[Square] = board.get_player_squares(Player.WHITE)
 
         manhatten_dist_sum: int = 0
         if (len(black_squares) > 0):
-            black_square: Square = black_squares[0]
-            print("target:", black_square.pos)
+            black_square: Square = random.choice(black_squares)
+            #print("target:", black_square.pos)
             for white_square in white_squares:
                 difference: Pos2D = (black_square.pos - white_square.pos)
                 manhatten_dist_sum += abs(difference.x) + abs(difference.y)
 
         num_white_pieces: int = len(white_squares)
         num_black_pieces: int = len(black_squares)
-        return num_white_pieces - num_black_pieces - board.round_num - manhatten_dist_sum * 0.001
+        return 1.1 * num_white_pieces - num_black_pieces - board.round_num - manhatten_dist_sum * 0.001
