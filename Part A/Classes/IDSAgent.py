@@ -3,7 +3,6 @@ from typing import List, Tuple
 
 from Classes.Board import Board
 from Classes.Delta import Delta
-from Classes.Node import Node
 from Classes.Pos2D import Pos2D
 from Classes.Square import Square
 from Enums.GamePhase import GamePhase
@@ -26,21 +25,19 @@ class IDSAgent:
     # The length of the history of recent board states the agent can remember. Used to avoid repeat moves.
     _BOARD_MEMORY: int = 256
 
+    # A reference to the current board that the agent is on.
     _board: Board
-    _node: Node
-    _init_node: Node = Node(None, None)
+    _recent_board_history: List[str] = []
 
-    recent_board_history: List[str] = []
-
-    def __init__(self, start_board: Board = None, seed: int = random.randint(0, 999999)):
+    def __init__(self, start_board: Board, seed: int = None):
         self._board = start_board
-        self._node = self._init_node
-        random.seed(seed)
+
+        if (seed != None):
+            random.seed(seed)
 
     def massacre(self):
         """
         This method runs the algorithm until all enemy pieces are killed (or the game is over otherwise).
-        :return:
         """
         print(self._board)
 
@@ -48,12 +45,9 @@ class IDSAgent:
 
             deltas: List[Delta] = self._board.get_all_valid_moves(Player.WHITE)
             delta_scores: List[Tuple[Delta, List[float]]] = []
-            score: List[float]
             for delta in deltas:
-                score = IDSAgent.get_board_score(self._board.get_next_board(delta), Node(self._node, delta), 0,
-                                                 self.recent_board_history)
-                if IDSAgent._REPEAT_BOARD not in score:
-                    delta_scores.append((delta, score))
+                delta_scores.append((delta, IDSAgent.get_board_score(self._board.get_next_board(delta), 0,
+                                                                     self._recent_board_history)))
 
             # If there are multiple deltas with the same high-score, this will ensure that a random one is picked so
             # that it's not deterministic every time the game starts. Also helps avoid endless loops.
@@ -62,32 +56,29 @@ class IDSAgent:
             best_delta: Tuple[Delta, List[float]] = max(delta_scores, key=lambda x:(x[1][0], -len(x[1]), x[1]))
 
             self._board = self._board.get_next_board(best_delta[0])
-            self._node = Node(self._node, best_delta[0])
 
-            self.recent_board_history =  [self._board.__str__()] + self.recent_board_history[:IDSAgent._BOARD_MEMORY]
+            self._recent_board_history = [self._board.__str__()] + self._recent_board_history[:IDSAgent._BOARD_MEMORY]
 
             print("{:3}: {} ({})".format(self._board.round_num - 1, best_delta[0], best_delta[1]))
             print(self._board)
 
     @staticmethod
-    def get_board_score(board: Board, node: Node, depth: int, recent_boards: List[str]) -> List[float]:
+    def get_board_score(board: Board, depth: int, board_history: List[str]) -> List[float]:
+        if (board.__str__() in board_history):
+            return [IDSAgent._REPEAT_BOARD]
+
         if (depth == 0 or board.phase == GamePhase.FINISHED):
-            return [IDSAgent.get_heuristic_value(board, recent_boards)]
+            return [IDSAgent.get_heuristic_value(board)]
 
         deltas: List[Delta] = board.get_all_valid_moves(Player.WHITE)
         best_score: List[float] = [-999999]
         for delta in deltas:
-            child_node: Node = Node(node, delta)
-            best_score = max(best_score, IDSAgent.get_board_score(board.get_next_board(delta), child_node, depth - 1,
-                                                                  recent_boards))
+            best_score = max(best_score, IDSAgent.get_board_score(board.get_next_board(delta), depth - 1, board_history))
 
-        return best_score + [IDSAgent.get_heuristic_value(board, recent_boards)]
+        return best_score + [IDSAgent.get_heuristic_value(board)]
 
     @staticmethod
-    def get_heuristic_value(board: Board, board_history: List[str]):
-        if (board.__str__() in board_history):
-            return IDSAgent._REPEAT_BOARD
-
+    def get_heuristic_value(board: Board):
         black_squares: List[Square] = board.get_player_squares(Player.BLACK)
         white_squares: List[Square] = board.get_player_squares(Player.WHITE)
 

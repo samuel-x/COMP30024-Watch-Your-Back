@@ -1,7 +1,7 @@
 - Currently handling draws by adding 0.5 to every node.
 	vs adding no wins to any node?
 
-- Look at python picke module for possibly serializing and deserializing the MCTS tree.
+- Look at python pickle module for possibly serializing and deserializing the MCTS tree.
 	https://docs.python.org/3.6/library/pickle.html#module-pickle
 	Are we allowed to do that for the final project?
 

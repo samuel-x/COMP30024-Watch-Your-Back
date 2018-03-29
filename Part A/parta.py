@@ -1,11 +1,9 @@
 # This will be the file to run the program.
 import time
 
-from Classes.IDSAgent import IDSAgent
 from Classes.Board import Board
+from Classes.IDSAgent import IDSAgent
 from Enums.GamePhase import GamePhase
-
-
 from Enums.Player import Player
 
 MOVES = "Moves"
@@ -25,6 +23,5 @@ def parta():
         alpha_beta_agent = IDSAgent(board, 30024)
         alpha_beta_agent.massacre()
         print(time.time() - start)
-
 
 parta()
