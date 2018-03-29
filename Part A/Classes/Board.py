@@ -15,7 +15,6 @@ class Board():
     A structure that represents the board at a given point.
     """
 
-    # TODO Move these into Utilities? Elsewhere?
     # Directional/locational constants.
     _HORIZONTAL: str = "horizontal"
     _VERTICAL: str = "vertical"
@@ -23,9 +22,11 @@ class Board():
 
     _NUM_COLS: int = 8
     _NUM_ROWS: int = 8
+
+    # The minimum number of pieces a player can have on the board before they lose.
     _MIN_NUM_PIECES_BEFORE_LOSS = 1
 
-    # Structure that contains the squares.
+    # Structure that contains the squares as (position : square) pairs.
     squares: Dict[Pos2D, Square]
     # round_num is not the turn number. e.g. after each player has had a turn, then round_num == 3.
     round_num: int
@@ -33,7 +34,7 @@ class Board():
     phase: GamePhase
 
     def __init__(self, squares: Optional[Dict[Pos2D, Square]], round_num: int, phase: GamePhase):
-        if (squares == None):
+        if (squares is None):
             self.squares = self._init_squares()
         else:
             self.squares = squares
@@ -45,42 +46,40 @@ class Board():
         """
         This method takes a player and returns the number of possible moves that they can take.
         This is required for Part A question 1 as defined in the spec.
-        :param player:
-        :return:
         """
         player_squares: List[Square] = self.get_player_squares(player)
         count: int = 0
         for player_square in player_squares:
-            surr_squares = self._get_surrounding_squares(player_square.pos)
-            for surr_square in surr_squares:
-                if (surr_square.state == SquareState.OPEN):
+            adj_squares: List[Square] = self._get_adjacent_squares(player_square.pos)
+            for adj_square in adj_squares:
+                if (adj_square.state == SquareState.OPEN):
                     count += 1
-                elif(surr_square.state == SquareState.OCCUPIED):
-                    opposite_square: Square = self.squares.get(self._get_opposite_pos(player_square.pos, surr_square.pos))
-                    if (opposite_square != None and opposite_square.state == SquareState.OPEN):
+                elif(adj_square.state == SquareState.OCCUPIED):
+                    opposite_square: Square = self.squares.get(self._get_opposite_pos(player_square.pos, adj_square.pos))
+                    if (opposite_square is not None and opposite_square.state == SquareState.OPEN):
                         count += 1
 
         return count
 
     def get_valid_movements(self, pos: Pos2D) -> List[Delta]:
         """
-        This method takes a position on the board and returns a list of possible moves (or 'deltas') from that position.
-        :param pos:
-        :return:
+        Given a position on the board, returns a list of possible moves (or 'deltas') from that position.
         """
         valid_moves: List[Delta] = []
 
-        surrounding_squares: List[Square] = self._get_surrounding_squares(pos)
-        for surrounding_square in surrounding_squares:
+        adjacent_squares: List[Square] = self._get_adjacent_squares(pos)
+        # For each adjacent square, determine if it can be moved to or jumped over and then create and store the
+        # corresponding delta if possible.
+        for adjacent_square in adjacent_squares:
             move_origin: Square
             move_target: Square
 
-            if (surrounding_square.state == SquareState.OPEN):
+            if (adjacent_square.state == SquareState.OPEN):
                 move_origin = self.squares[pos]
-                move_target = surrounding_square
-            elif (surrounding_square.state == SquareState.OCCUPIED):
-                opposite_square: Square = self.squares.get(self._get_opposite_pos(pos, surrounding_square.pos))
-                if (opposite_square != None and opposite_square.state == SquareState.OPEN):
+                move_target = adjacent_square
+            elif (adjacent_square.state == SquareState.OCCUPIED):
+                opposite_square: Square = self.squares.get(self._get_opposite_pos(pos, adjacent_square.pos))
+                if (opposite_square is not None and opposite_square.state == SquareState.OPEN):
                     move_origin = self.squares[pos]
                     move_target = opposite_square
                 else:
@@ -108,113 +107,109 @@ class Board():
 
         return valid_moves
 
-    def get_next_board(self, delta: Delta) -> 'Board': # <- 'Board' Is this really normal?
+    def get_next_board(self, delta: Delta) -> 'Board':
         """
-        This method takes a delta and creates a new board from this delta. This is used in order to update the game.
-        :param delta:
-        :return:
+        This method takes a delta and uses it to create a new board from the calling instance. This can be seen as
+        actually making the move, once the move has been determined.
         """
 
-        # Sanity checks to ensure we're calling the method correctly.
+        # Sanity checks to ensure we're doing a legal move.
         assert self.squares[delta.move_target.pos].state == SquareState.OPEN
         assert self.squares[delta.move_origin.pos].state == SquareState.OCCUPIED
 
-        board_copy: Board = self.__deepcopy__()
+        next_board: Board = deepcopy(self)
 
         # Make sure that both the original and target squares are changed to reflect change in the given delta.
-        board_copy.squares[delta.move_target.pos].occupant = delta.move_origin.occupant
-        board_copy.squares[delta.move_target.pos].state = SquareState.OCCUPIED
-        board_copy.squares[delta.move_origin.pos].occupant = None
-        board_copy.squares[delta.move_origin.pos].state = SquareState.OPEN
+        next_board.squares[delta.move_target.pos].occupant = delta.move_origin.occupant
+        next_board.squares[delta.move_target.pos].state = SquareState.OCCUPIED
+        next_board.squares[delta.move_origin.pos].occupant = None
+        next_board.squares[delta.move_origin.pos].state = SquareState.OPEN
 
+        # Update all the squares that had a killed piece.
         for pos in delta.killed_square_positions:
-            board_copy.squares[pos].occupant = None
-            board_copy.squares[pos].state = SquareState.OPEN
+            next_board.squares[pos].occupant = None
+            next_board.squares[pos].state = SquareState.OPEN
 
-        board_copy.round_num += 1
-        board_copy._update_game_phase()
+        # Update the game state.
+        next_board.round_num += 1
+        next_board._update_game_phase()
 
-        return board_copy
-
+        return next_board
 
     def get_player_squares(self, player: Player) -> List[Square]:
         """
-        TODO
-        :param player:
-        :return:
+        Returns a list of all squares that have a piece on them that is controlled by the given player.
         """
         return [square for square in self.squares.values() if
                 square.state == SquareState.OCCUPIED and square.occupant.owner == player]
 
-    def _get_surrounding_squares(self, pos: Pos2D, direction: str = _OMNI) -> List[Square]:
+    def _get_adjacent_squares(self, pos: Pos2D, direction: str = _OMNI) -> List[Square]:
         """
         Returns a list of max 4 squares which are directly adjacent (up, down, left, right) of the given position.
-        Can specify if only surrounding squares in a certain direction are wanted using the 'direction' parameter.
+        Can specify if only adjacent squares in a certain direction are wanted using the 'direction' parameter.
         :param pos: The position which we want adjacent squares for.
+        :param direction: The desired direction to get the adjacent squares for. Can be horizontal, vertical, or
+                          omni i.e. both.
         :return: A list of adjacent squares.
         """
         adjacent_squares: List[Square] = []
         if (direction == Board._OMNI):
-            adjacent_squares.extend(self._get_surrounding_squares(pos, Board._HORIZONTAL))
-            adjacent_squares.extend(self._get_surrounding_squares(pos, Board._VERTICAL))
+            # Recursively call this method to get the horizontally and vertically adjacent squares.
+            adjacent_squares.extend(self._get_adjacent_squares(pos, Board._HORIZONTAL))
+            adjacent_squares.extend(self._get_adjacent_squares(pos, Board._VERTICAL))
         elif (direction == Board._HORIZONTAL):
             adjacent_squares = [self.squares.get(pos + Pos2D(1, 0)), self.squares.get(pos + Pos2D(-1, 0))]
         elif (direction == Board._VERTICAL):
             adjacent_squares = [self.squares.get(pos + Pos2D(0, 1)), self.squares.get(pos + Pos2D(0, -1))]
 
-        return [square for square in adjacent_squares if square != None]
-
-    def _check_opposite_squares(self, moving_piece: Piece, opposite_square: Square) -> bool:
-        """
-        This method checks opposite squares for enemy pieces or corners.
-        :param moving_piece:
-        :param opposite_square:
-        :return:
-        """
-        return (opposite_square != None and
-                    (opposite_square.state == SquareState.OCCUPIED and
-                    opposite_square.occupant.owner == moving_piece.owner and
-                    opposite_square.occupant != moving_piece) or
-                        opposite_square != None and
-                        opposite_square.state == SquareState.CORNER)
+        return [square for square in adjacent_squares if square is not None]
 
     def _get_killed_positions(self, moving_piece: Piece, moving_piece_target_pos: Pos2D) -> List[Pos2D]:
         """
         This method takes a piece that is moving and it's target position and calculates a list of positions
-        where the piece will be killed by enemy pieces.
-        TODO Mention about how it handles the moving piece being killed.
-        :param moving_piece:
-        :param moving_piece_target_pos:
-        :return:
+        that will be killed as a result of the move. This may include the moving piece itself.
         """
         killed_positions: List[Pos2D] = []
 
-        # Short for 'horizontally surrounding squares'.
-        x_surround: List[Square] = self._get_surrounding_squares(moving_piece_target_pos, Board._HORIZONTAL)
-        y_surround: List[Square] = self._get_surrounding_squares(moving_piece_target_pos, Board._VERTICAL)
+        # Short for 'horizontally adjacent squares'.
+        x_adjacent: List[Square] = self._get_adjacent_squares(moving_piece_target_pos, Board._HORIZONTAL)
+        y_adjacent: List[Square] = self._get_adjacent_squares(moving_piece_target_pos, Board._VERTICAL)
 
-        # Add any surrounding squares that would be killed if the given piece moved to the given location.
-        for surrounding_square in [*x_surround, *y_surround]:
-            if (surrounding_square.state == SquareState.OCCUPIED and
-                    surrounding_square.occupant.owner != moving_piece.owner):
+        # Add any adjacent squares that would be killed if the given piece moved to the given location.
+        for adjacent_square in [*x_adjacent, *y_adjacent]:
+            if (adjacent_square.state == SquareState.OCCUPIED and
+                    adjacent_square.occupant.owner != moving_piece.owner):
                 opposite_square: Square = \
-                    self.squares.get(self._get_opposite_pos(moving_piece_target_pos, surrounding_square.pos))
-                if self._check_opposite_squares(moving_piece, opposite_square): # TODO Can this be written better?
-                    killed_positions.append(surrounding_square.pos)
+                    self.squares.get(self._get_opposite_pos(
+                        moving_piece_target_pos, adjacent_square.pos))
 
-        # Now check if the piece that is moving gets killed. This would be a stupid move, but it could happen.
+                if opposite_square is None:
+                    # The opposite square out of bounds, move onto the next one.
+                    continue
 
-        # Remove references to surrounding squares if they are going to be killed, as they then cannot kill the moving
+                # Check if the opposite piece is owned by the same player who's making the move or if it is a corner
+                # square. If so, add the adjacent square to the list of killed positions.
+                if ((opposite_square.state == SquareState.OCCUPIED
+                     and opposite_square.occupant.owner == moving_piece.owner
+                     and opposite_square.occupant != moving_piece)
+                        or opposite_square.state == SquareState.CORNER):
+                    killed_positions.append(adjacent_square.pos)
+
+        # Now check if the piece that is moving gets killed. This would (probably) be a stupid move, but it could
+        # happen.
+
+        # Remove references to adjacent squares if they are going to be killed, as they then cannot kill the moving
         # piece.
-        [x_surround.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in x_surround] # TODO: Make this nicer?
-        [y_surround.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in y_surround] # I looked up using Filter() instead but apparently it's recommended list comprehensions are better
+        [x_adjacent.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in x_adjacent]
+        [y_adjacent.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in y_adjacent]
 
         # Filter out squares from both lists that are not occupied by enemy pieces or aren't corners.
-        potential_x_killer_squares = [square for square in x_surround if (square.state == SquareState.OCCUPIED and
+        potential_x_killer_squares = [square for square in x_adjacent if (square.state == SquareState.OCCUPIED and
                                     square.occupant.owner != moving_piece.owner) or square.state == SquareState.CORNER]
-        potential_y_killer_squares = [square for square in y_surround if (square.state == SquareState.OCCUPIED and
+        potential_y_killer_squares = [square for square in y_adjacent if (square.state == SquareState.OCCUPIED and
                                     square.occupant.owner != moving_piece.owner) or square.state == SquareState.CORNER]
 
+        # If either list still has two squares in them, that means that the moving piece is doomed.
         if (len(potential_x_killer_squares) == 2 or len(potential_y_killer_squares) == 2):
             killed_positions.append(moving_piece_target_pos)
 
@@ -222,38 +217,33 @@ class Board():
 
     def _get_opposite_pos(self, first_pos: Pos2D, second_pos: Pos2D) -> Pos2D:
         """
-        TODO Better name?
-        Always returns a Pos2D, regardless of if it marks a position off of the board, an eliminated square, etc.
-        Takes two adjacent positions and returns the third if read in the order of first_pos -> second_pos -> third_pos.
-        :param first_pos:
-        :param second_pos:
-        :return:
+        Given two sequential, adjacent positions, return the third position in that sequence.
+        This method can be seen as getting the position that is opposite of 'first_pos' in regards to 'second_pos'.
+        This method always returns a Pos2D, regardless of if it marks a position off of the board, an eliminated
+        square, etc. In other words, it does no checking to see if the position is valid.
         """
-        delta: Pos2D = second_pos - first_pos
+        displacement: Pos2D = second_pos - first_pos
 
-        assert (abs(delta.x) + abs(delta.y)) == 1
+        # Ensure that the two given positions are adjacent.
+        assert (abs(displacement.x) + abs(displacement.y)) == 1
 
-        return second_pos + delta
+        return second_pos + displacement
 
-    def _update_game_phase(self):
+    def _update_game_phase(self) -> None:
         """
-        TODO
-        - Get num player pieces.
-            - If either player has < 2 pieces, they lose.
-            - If both players have < 2 pieces, it's a draw.
-        :return:
+        Checks the current state of the game and the board to determine if the game phase should change (and then makes
+        that change).
         """
 
-        player_square_counts: Dict[Player, int] = {Player.WHITE: len(self.get_player_squares(Player.WHITE)),
-                                                   Player.BLACK: len(self.get_player_squares(Player.BLACK))}
-        if (player_square_counts[Player.WHITE] < Board._MIN_NUM_PIECES_BEFORE_LOSS or
-            player_square_counts[Player.BLACK] < Board._MIN_NUM_PIECES_BEFORE_LOSS):
+        # If either player has less than the minimum number of required pieces, change the game state to reflect that
+        # the game has finished.
+        if (len(self.get_player_squares(Player.WHITE)) < Board._MIN_NUM_PIECES_BEFORE_LOSS or
+                len(self.get_player_squares(Player.BLACK)) < Board._MIN_NUM_PIECES_BEFORE_LOSS):
             self.phase = GamePhase.FINISHED
 
     def _init_squares(self) -> Dict[Pos2D, Square]:
         """
-        This method creates all the squares in the board.
-        :return:
+        This method initializes all square objects for a complete board as if it were the beginning of the game.
         """
         squares: Dict[Pos2D, Square] = {}
         for col_i in range(Board._NUM_COLS):
@@ -268,7 +258,7 @@ class Board():
 
         return squares
 
-    def __str__(self):
+    def __str__(self) -> str:
         output: str = ""
 
         for row_i in range(Board._NUM_ROWS):
@@ -292,13 +282,10 @@ class Board():
         return Board(squares, round_num, phase)
 
     @staticmethod
-    def create_from_string(round_num: int, game_phase: GamePhase):
+    def create_from_string(round_num: int, game_phase: GamePhase) -> 'Board':
         """
         This method takes a string (that is a representation of the board in x-y format) and returns a board object.
-        This also defines the round number and the game phase from the board.
-        :param round_num:
-        :param game_phase:
-        :return:
+        This also defines the round number and the game phase for the board.
         """
         new_board: Board = Board(None, round_num, game_phase)
         for row_i in range(Board._NUM_ROWS):

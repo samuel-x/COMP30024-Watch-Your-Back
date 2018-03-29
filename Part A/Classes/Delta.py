@@ -32,7 +32,7 @@ class Delta():
 
     def __str__(self):
         player: str = self.player.__str__()
-        if (self.move_origin == None):
+        if (self.move_origin is None):
             return player + ": -> {}".format(self.move_target.pos)
         else:
             return player + ": {} -> {}".format(self.move_origin.pos, self.move_target.pos)
@@ -43,9 +43,6 @@ class Delta():
         :param other:
         :return:
         """
-        if (not isinstance(other, Delta)):
-            return False
-
         self_tuple = (self.player, self.move_origin, self.move_target, self.killed_square_positions)
         other_tuple = (other.player, other.move_origin, other.move_target, other.killed_square_positions)
 

@@ -37,7 +37,7 @@ class IDSAgent:
 
     def __init__(self, start_board: Board, seed: int = None):
         self._board = start_board
-        if (seed != None):
+        if (seed is not None):
             random.seed(seed)
 
     def massacre(self):
@@ -145,8 +145,8 @@ class IDSAgent:
         if (len(black_squares) > 0):
             black_square: Square = black_squares[0]
             for white_square in white_squares:
-                difference: Pos2D = (black_square.pos - white_square.pos)
-                manhattan_dist_sum += abs(difference.x) + abs(difference.y)
+                displacement: Pos2D = (black_square.pos - white_square.pos)
+                manhattan_dist_sum += abs(displacement.x) + abs(displacement.y)
 
         # Calculate the number of white and black pieces. This is a very important heuristic that will help prioritize
         # preserving white's own pieces and killing the enemy's black pieces.

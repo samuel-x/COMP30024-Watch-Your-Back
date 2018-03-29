@@ -35,7 +35,4 @@ class Square():
 
     def __eq__(self, other: 'Square'):
 
-        if (not isinstance(other, Square)):
-            return False
-
         return (self.pos, self.occupant, self.state) == (other.pos, other.occupant, other.state)
