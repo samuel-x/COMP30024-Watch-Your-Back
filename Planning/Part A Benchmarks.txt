@@ -9,5 +9,9 @@ X @ - @ - - @ X
 Massacre
 
 Depth = 1
-	(Time, moves)
-	(5.0447, 200)
+	(Time, Moves)
+	(4.0624, 169)
+
+Depth = 2
+	(Time, Moves)
+	(12.7031, 84)
