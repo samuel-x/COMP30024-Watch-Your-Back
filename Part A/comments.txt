@@ -1,13 +1,50 @@
-Discussion goes here.
+We went for a very object-oriented approach to the project, and with Part B in
+mind. By splitting our program into classes, we were able to better represent
+the board and its pieces. We were also able to write useful helper methods for
+the different classes where appropriate, making programming and implementing
+systems easier. The largest class that we have is the 'Board' class, which
+represents our in-game board, providing useful methods and implementing the
+game rules. To help represent the board, we have other classes such as Squares,
+Pieces, Pos2D to represent 2D positions, and a collection of enums, namely
+GamePhase, used to denote e.g. MOVEMENT vs FINISHED (intended to be extended to
+have PLACEMENT phase), Player to denote the two different players in the game,
+and SquareState, to denote the different states a square can have, e.g. OPEN,
+CORNER, and OCCUPIED (intended to be extended to have ELIMINATED state, for the
+death zone in part B). All these classes and enums contribute to lowering
+coupling and sensibly organizing program logic.
 
-Structure Decisions:
-Most of the decisions made regarding the object oriented nature were made with Part B in mind.
-By splitting our program into classes we were able to better represent the board and it's pieces and therefore
-manipulate the board more easily.
-...
+'Moves' mode (bullet point 1):
+The time complexity of our solution is around O(p+s) where
+    s = Number of squares (i.e. 64)
+    p = Number of player squares
+The 's' comes from iterating through the entire board once to identify all
+player squares. Once that is done, we iterate through every player square (hence
+the 'p'), evaluating each of its adjacent positions (two over if a jump is
+possible) to count the number of possible moves. Ignoring the memory to store
+the board, the space complexity of the solution is minimal i.e. O(p), to store a
+reference to each player square.
 
-Algorithmic Decisions:
-For Part A we originally intended to use a Monte-Carlo Tree Search as it was used in many recent competitive AI programs,
-including Go, chess and shogi. However this proved too complex and resource heavy and decided for Part A it would be
-more suitable to use the AlphaBeta pruning instead.
-...
+'Massacre' mode (bullet point 2):
+While our solution for Part A does not explicitly make use of nodes (i.e. there
+is no 'Node' class), it still utilizes search to solve the search problem. From
+a given board (the current board), every possible move sequence a pre-determined
+number of levels down (call this 'd') is considered (imagine a graph). We use a
+variant of IDS, or iterative-deepening search, that will search through all
+possible sequences of moves 'd' levels down, producing a list of ratings for
+each board state along the sequence of moves, and executing the best-rated move.
+At this point, the algorithm will repeat from the new resulting board, again
+looking through all sequences of moves 'd' levels down the (abstract) graph. The
+branching factor of the search tree is equal to the number of
+moves available to the player at the given board (analogous to node). As
+mentioned earlier, the maximum search depth of the algorithm is dictated by 'd'
+i.e. the programmer-set depth for the algorithm to look before making a move.
+This algorithm does *not* always return the shortest sequence of moves to
+eliminate the enemy pieces, though it may at times, particularly if 'd' is
+set to a higher value and the scenario is simpler. However, this ultimately
+makes the algorithm run much longer, which is why we've set 'd' to 1 for the
+submission as that seems to consistently outperform (time-wise) higher values of
+'d' (though, of course, losing in the number of moves). Our implementation of
+IDS is around time complexity O(m * b^d), where 'm' is the number of moves to
+the solution, 'b' is the branching factor, and 'd' is the depth, as explained
+earlier. This is because, for every move, we're exploring b^d 'nodes' or moves,
+and we're doing 'm' moves in total.
