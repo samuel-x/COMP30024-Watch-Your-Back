@@ -5,7 +5,7 @@ from Classes.Pos2D import Pos2D
 from Enums.SquareState import SquareState
 
 
-class Square():
+class Square:
     """
     A structure that represents a square on a board.
     """
@@ -22,16 +22,15 @@ class Square():
         self.occupant = occupant
         self.state = state
 
-    def getRepresentation(self):
+    def get_representation(self):
         """
         Returns the string representation for the square. Expected use would be for printing the board that the square
         is a part of.
         """
-        if (self.state == SquareState.OCCUPIED):
-            return self.occupant.getRepresentation()
+        if self.state == SquareState.OCCUPIED:
+            return self.occupant.get_representation()
         else:
-            return self.state.getRepresentation()
-
+            return self.state.get_representation()
 
     def __eq__(self, other: 'Square'):
 

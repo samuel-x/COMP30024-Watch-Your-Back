@@ -1,4 +1,4 @@
-class Pos2D():
+class Pos2D:
     """
     Represents a 2D position.
     """

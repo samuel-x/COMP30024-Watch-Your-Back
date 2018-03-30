@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Optional
 
 from Classes.Delta import Delta
 from Classes.Piece import Piece
@@ -10,7 +10,7 @@ from Enums.Player import Player
 from Enums.SquareState import SquareState
 
 
-class Board():
+class Board:
     """
     A structure that represents the board at a given point.
     """
@@ -204,30 +204,20 @@ class Board():
         [y_adjacent.remove(self.squares[pos]) for pos in killed_positions if self.squares[pos] in y_adjacent]
 
         # Filter out squares from both lists that are not occupied by enemy pieces or aren't corners.
-        potential_x_killer_squares = [square for square in x_adjacent if (square.state == SquareState.OCCUPIED and
-                                    square.occupant.owner != moving_piece.owner) or square.state == SquareState.CORNER]
-        potential_y_killer_squares = [square for square in y_adjacent if (square.state == SquareState.OCCUPIED and
-                                    square.occupant.owner != moving_piece.owner) or square.state == SquareState.CORNER]
+        potential_x_killer_squares = [square for square in x_adjacent
+                                      if (square.state == SquareState.OCCUPIED
+                                          and square.occupant.owner != moving_piece.owner)
+                                        or square.state == SquareState.CORNER]
+        potential_y_killer_squares = [square for square in y_adjacent
+                                      if (square.state == SquareState.OCCUPIED
+                                          and square.occupant.owner != moving_piece.owner)
+                                        or square.state == SquareState.CORNER]
 
         # If either list still has two squares in them, that means that the moving piece is doomed.
         if (len(potential_x_killer_squares) == 2 or len(potential_y_killer_squares) == 2):
             killed_positions.append(moving_piece_target_pos)
 
         return killed_positions
-
-    def _get_opposite_pos(self, first_pos: Pos2D, second_pos: Pos2D) -> Pos2D:
-        """
-        Given two sequential, adjacent positions, return the third position in that sequence.
-        This method can be seen as getting the position that is opposite of 'first_pos' in regards to 'second_pos'.
-        This method always returns a Pos2D, regardless of if it marks a position off of the board, an eliminated
-        square, etc. In other words, it does no checking to see if the position is valid.
-        """
-        displacement: Pos2D = second_pos - first_pos
-
-        # Ensure that the two given positions are adjacent.
-        assert (abs(displacement.x) + abs(displacement.y)) == 1
-
-        return second_pos + displacement
 
     def _update_game_phase(self) -> None:
         """
@@ -241,30 +231,16 @@ class Board():
                 len(self.get_player_squares(Player.BLACK)) < Board._MIN_NUM_PIECES_BEFORE_LOSS):
             self.phase = GamePhase.FINISHED
 
-    def _init_squares(self) -> Dict[Pos2D, Square]:
-        """
-        This method initializes all square objects for a complete board as if it were the beginning of the game.
-        """
-        squares: Dict[Pos2D, Square] = {}
-        for col_i in range(Board._NUM_COLS):
-            for row_i in range(Board._NUM_ROWS):
-                pos: Pos2D = Pos2D(col_i, row_i)
-
-                if (pos.x == 0 and (pos.y == 0 or pos.y == Board._NUM_ROWS - 1) or
-                        pos.x == Board._NUM_COLS - 1 and (pos.y == 0 or pos.y == Board._NUM_ROWS - 1)):
-                    squares[pos] = Square(pos, None, SquareState.CORNER)
-                else:
-                    squares[pos] = Square(pos, None, SquareState.OPEN)
-
-        return squares
-
     def __str__(self) -> str:
+        """
+        Returns a string representation of the calling instance.
+        """
         output: str = ""
 
         for row_i in range(Board._NUM_ROWS):
             for col_i in range(Board._NUM_COLS):
                 pos: Pos2D = Pos2D(col_i, row_i)
-                output += ("{} ".format(self.squares[pos].getRepresentation()))
+                output += ("{} ".format(self.squares[pos].get_representation()))
             # Finished row, add new line.
             output += "\n"
 
@@ -282,6 +258,41 @@ class Board():
         return Board(squares, round_num, phase)
 
     @staticmethod
+    def _get_opposite_pos(first_pos: Pos2D, second_pos: Pos2D) -> Pos2D:
+        """
+        Given two sequential, adjacent positions, return the third position in that sequence.
+        This method can be seen as getting the position that is opposite of 'first_pos' in regards to 'second_pos'.
+        This method always returns a Pos2D, regardless of if it marks a position off of the board, an eliminated
+        square, etc. In other words, it does no checking to see if the position is valid.
+        """
+        displacement: Pos2D = second_pos - first_pos
+
+        # Ensure that the two given positions are adjacent.
+        assert (abs(displacement.x) + abs(displacement.y)) == 1
+
+        return second_pos + displacement
+
+    @staticmethod
+    def _init_squares() -> Dict[Pos2D, Square]:
+        """
+        This method initializes all square objects for a complete board as if it were the beginning of the game.
+        """
+        squares: Dict[Pos2D, Square] = {}
+        for col_i in range(Board._NUM_COLS):
+            for row_i in range(Board._NUM_ROWS):
+                pos: Pos2D = Pos2D(col_i, row_i)
+
+                if (pos.x == 0 and (
+                        pos.y == 0 or pos.y == Board._NUM_ROWS - 1) or
+                        pos.x == Board._NUM_COLS - 1 and (
+                                pos.y == 0 or pos.y == Board._NUM_ROWS - 1)):
+                    squares[pos] = Square(pos, None, SquareState.CORNER)
+                else:
+                    squares[pos] = Square(pos, None, SquareState.OPEN)
+
+        return squares
+
+    @staticmethod
     def create_from_string(round_num: int, game_phase: GamePhase) -> 'Board':
         """
         This method takes a string (that is a representation of the board in x-y format) and returns a board object.
@@ -292,13 +303,13 @@ class Board():
             row_string: List[str] = input().split(" ")
             for col_i, char in enumerate(row_string):
                 pos: Pos2D = Pos2D(col_i, row_i)
-                if (char == SquareState.CORNER.getRepresentation()):
+                if (char == SquareState.CORNER.get_representation()):
                     new_board.squares[pos] = Square(pos, None, SquareState.CORNER)
-                elif (char == SquareState.OPEN.getRepresentation()):
+                elif (char == SquareState.OPEN.get_representation()):
                     new_board.squares[pos] = Square(pos, None, SquareState.OPEN)
-                elif (char == Player.WHITE.getRepresentation()):
+                elif (char == Player.WHITE.get_representation()):
                     new_board.squares[pos] = Square(pos, Piece(Player.WHITE), SquareState.OCCUPIED)
-                elif (char == Player.BLACK.getRepresentation()):
+                elif (char == Player.BLACK.get_representation()):
                     new_board.squares[pos] = Square(pos, Piece(Player.BLACK), SquareState.OCCUPIED)
 
         return new_board

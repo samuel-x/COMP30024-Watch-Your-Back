@@ -154,6 +154,7 @@ class IDSAgent:
         num_black_pieces: int = len(black_squares)
 
         # Return the heuristic rating by using the appropriate weights.
-        return round(IDSAgent._WHITE_WEIGHT * num_white_pieces - \
-                     IDSAgent._BLACK_WEIGHT * num_black_pieces - \
-                     IDSAgent._DIST_WEIGHT * manhattan_dist_sum, IDSAgent._RATING_NUM_ROUNDING)
+        return round(IDSAgent._WHITE_WEIGHT * num_white_pieces
+                     - IDSAgent._BLACK_WEIGHT * num_black_pieces
+                     - IDSAgent._DIST_WEIGHT * manhattan_dist_sum,
+                     IDSAgent._RATING_NUM_ROUNDING)

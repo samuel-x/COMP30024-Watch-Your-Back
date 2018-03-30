@@ -5,7 +5,7 @@ from Classes.Square import Square
 from Enums.Player import Player
 
 
-class Delta():
+class Delta:
     """
     A more abstract class. It contains information regarding a move made. An before-board and an appropriate delta
     should give just enough information to create the resulting board.
@@ -30,18 +30,19 @@ class Delta():
         self.move_target = move_target
         self.killed_square_positions = killed_square_positions
 
-    def __str__(self):
-        player: str = self.player.__str__()
-        if (self.move_origin is None):
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the calling instance.
+        """
+        player: str = str(self.player)
+        if self.move_origin is None:
             return player + ": -> {}".format(self.move_target.pos)
         else:
             return player + ": {} -> {}".format(self.move_origin.pos, self.move_target.pos)
 
-    def __eq__(self, other: 'Delta'):
+    def __eq__(self, other: 'Delta') -> bool:
         """
-        TODO Make this nicer (and for Square?)
-        :param other:
-        :return:
+        Compares two delta objects.
         """
         self_tuple = (self.player, self.move_origin, self.move_target, self.killed_square_positions)
         other_tuple = (other.player, other.move_origin, other.move_target, other.killed_square_positions)

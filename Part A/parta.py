@@ -9,6 +9,7 @@ from Enums.Player import Player
 MOVES = "Moves"
 MASSACRE = "Massacre"
 
+
 def parta():
 
     # Notes on style:
@@ -35,5 +36,6 @@ def parta():
         alpha_beta_agent = IDSAgent(board, 30024)
         alpha_beta_agent.massacre()
         print(time.time() - start)
+
 
 parta()

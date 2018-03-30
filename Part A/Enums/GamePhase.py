@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class GamePhase(Enum):
     """
     Used to represent different states that a game/board can be in.
