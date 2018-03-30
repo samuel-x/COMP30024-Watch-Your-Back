@@ -25,18 +25,19 @@ class IDSAgent:
     # The length of the history of recent board states the agent can remember. Used to avoid repeat moves. Can be quiet
     # high, as each board (being represented by a string) does not take much memory.
     _BOARD_HISTORY_MEMORY: int = 512
-    # The depth to go in each iteration of the iterative-deepening search algorithm. 0 indexed, i.e. 0 is depth of 1.
-    _DEPTH: int = 1
 
     # A reference to the current board that the agent is on.
     _board: Board
+    # The depth to go in each iteration of the iterative-deepening search algorithm i.e. number of moves to look ahead.
+    _depth: int
     # A list of recent boards. Each board is stored in its string form, for memory and efficiency purposes.
     # This will allow us to check if a move results in a previous board, and therefore not perform that move, avoiding
     # endless loops in the process.
     _recent_board_history: List[str] = []
 
-    def __init__(self, start_board: Board, seed: int = None):
+    def __init__(self, start_board: Board, depth: int, seed: int = None):
         self._board = start_board
+        self._depth = depth
         if (seed is not None):
             random.seed(seed)
 
@@ -57,7 +58,7 @@ class IDSAgent:
             random.shuffle(deltas)
 
             # Get the best move to perform. TODO: Before submission, only grab delta (no ratings)
-            best_delta: Tuple[Delta, List[float]] = IDSAgent.get_best_delta(self._board, Player.WHITE, IDSAgent._DEPTH,
+            best_delta: Tuple[Delta, List[float]] = IDSAgent.get_best_delta(self._board, Player.WHITE, self._depth,
                                                                             self._recent_board_history)
 
             # Before performing the move, save the current board into the recent boards history list.
@@ -66,8 +67,9 @@ class IDSAgent:
             # Perform the move, replacing the reference to the old board with the new one.
             self._board = self._board.get_next_board(best_delta[0])
 
-            print("{:3}: {} ({})".format(self._board.round_num - 1, best_delta[0], best_delta[1]))
+            print("{:3}: {}: {} ({})".format(self._board.round_num - 1, Player.WHITE, best_delta[0], best_delta[1]))
             print(self._board)
+            # print(best_delta[0])
 
     @staticmethod
     def get_board_ratings(board: Board, depth: int, recent_board_history: List[str]) -> List[float]:
@@ -124,6 +126,19 @@ class IDSAgent:
         for delta in deltas:
             delta_ratings: List[float] = IDSAgent.get_board_ratings(board.get_next_board(delta),
                                                                     depth - 1, recent_board_history)
+
+            # This "max" criteria defined by the lambda looks a bit complex, so let's explain. Keep in mind that floats
+            # further to the left in a given list represents the rating of a board further down the game three. When
+            # finding the best move sequence (from the current board's perspective), we prioritize moves that result in
+            # the best score at its furthest down board state i.e. [5 1 1] is better than [1 9 9], because three
+            # moves down, it will have a board rated 5 vs the other's board which is rated 1. In the event of this first
+            # value being equal, we prefer the shortest list i.e. [5 2] is better than [5 3 2]. This is because the
+            # shorter list means that the game will be over sooner (but still have a board rating as good as the longer
+            # list). This will help the algorithm execute killing moves in 'Massacre' and not put them off by doing an
+            # inconsequential move first. Finally, if the lengths are the same, we prioritize the list with the highest
+            # rating at any given index i.e. [5 3 3] is better than [5 3 2] because it means that we're doing the
+            # moves that will keep the board's rating as high as possible (again, only if the comparison gets to this
+            # point). Sorted example according to this criteria: [4 3 2] > [3 1] > [3 2 2] > [3 2 1] > [-999].
             best_delta = max([best_delta,
                               (delta, delta_ratings)], key=lambda x: (x[1][0], -len(x[1]), x[1]))
 

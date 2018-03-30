@@ -34,11 +34,10 @@ class Delta:
         """
         Returns a string representation of the calling instance.
         """
-        player: str = str(self.player)
         if self.move_origin is None:
-            return player + ": -> {}".format(self.move_target.pos)
+            return "{}".format(self.move_target.pos)
         else:
-            return player + ": {} -> {}".format(self.move_origin.pos, self.move_target.pos)
+            return "{} -> {}".format(self.move_origin.pos, self.move_target.pos)
 
     def __eq__(self, other: 'Delta') -> bool:
         """

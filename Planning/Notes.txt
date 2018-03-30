@@ -25,6 +25,8 @@
 	- Can test how good the implemented MCTS algorithm is.
 	- MCTS will happen constantly, both during its turn and the player's turn.
 
+- Change back Delta's str method to printing player color.
+
 - Todo
 	- Documentation
 	- Refactoring ugly code.

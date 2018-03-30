@@ -33,7 +33,7 @@ def parta():
         print(board.get_num_moves(Player.BLACK))
     elif (mode == MASSACRE):
         start = time.time()  # TODO Delete
-        alpha_beta_agent = IDSAgent(board, 30024)
+        alpha_beta_agent = IDSAgent(board, 1)
         alpha_beta_agent.massacre()
         print(time.time() - start)
 
