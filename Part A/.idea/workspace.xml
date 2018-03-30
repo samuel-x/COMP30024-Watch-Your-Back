@@ -2,17 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="19c5cdd1-2cea-41e0-ae35-71f139c1fb34" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/Classes/Board.py" afterPath="$PROJECT_DIR$/Classes/Board.py" />
-      <change beforePath="$PROJECT_DIR$/Classes/Delta.py" afterPath="$PROJECT_DIR$/Classes/Delta.py" />
       <change beforePath="$PROJECT_DIR$/Classes/IDSAgent.py" afterPath="$PROJECT_DIR$/Classes/IDSAgent.py" />
-      <change beforePath="$PROJECT_DIR$/Classes/Piece.py" afterPath="$PROJECT_DIR$/Classes/Piece.py" />
-      <change beforePath="$PROJECT_DIR$/Classes/Pos2D.py" afterPath="$PROJECT_DIR$/Classes/Pos2D.py" />
-      <change beforePath="$PROJECT_DIR$/Classes/Square.py" afterPath="$PROJECT_DIR$/Classes/Square.py" />
-      <change beforePath="$PROJECT_DIR$/Enums/GamePhase.py" afterPath="$PROJECT_DIR$/Enums/GamePhase.py" />
-      <change beforePath="$PROJECT_DIR$/Enums/Player.py" afterPath="$PROJECT_DIR$/Enums/Player.py" />
-      <change beforePath="$PROJECT_DIR$/Enums/SquareState.py" afterPath="$PROJECT_DIR$/Enums/SquareState.py" />
-      <change beforePath="$PROJECT_DIR$/parta.py" afterPath="$PROJECT_DIR$/parta.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -23,15 +13,15 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/Part_A$Main.coverage" NAME="Main Coverage Results" MODIFIED="1522134482730" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Part_A$Unnamed.coverage" NAME="Unnamed Coverage Results" MODIFIED="1522378836113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Part_A$Unnamed.coverage" NAME="Unnamed Coverage Results" MODIFIED="1522380536491" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file leaf-file-name="IDSAgent.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Classes/IDSAgent.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="550">
-              <caret line="82" column="40" lean-forward="false" selection-start-line="82" selection-start-column="40" selection-end-line="82" selection-end-column="40" />
+            <state relative-caret-position="396">
+              <caret line="54" column="27" lean-forward="false" selection-start-line="54" selection-start-column="27" selection-end-line="54" selection-end-column="27" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -417,10 +407,11 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32979852" sideWeight="0.4875" order="8" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.37327677" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="3180" y="31" width="659" height="1008" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="false" show_stripe_button="true" weight="0.37327677" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="3180" y="31" width="659" height="1008" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32953367" sideWeight="0.5125" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
@@ -842,8 +833,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Classes/IDSAgent.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="550">
-          <caret line="82" column="40" lean-forward="false" selection-start-line="82" selection-start-column="40" selection-end-line="82" selection-end-column="40" />
+        <state relative-caret-position="396">
+          <caret line="54" column="27" lean-forward="false" selection-start-line="54" selection-start-column="27" selection-end-line="54" selection-end-column="27" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>

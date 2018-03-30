@@ -65,10 +65,10 @@ class IDSAgent:
             # loops.
             random.shuffle(deltas)
 
-            # Get the best move to perform. TODO: Before submission, only grab delta (no ratings)
-            best_delta: Tuple[Delta, List[float]] = \
+            # Get the best move to perform.
+            best_delta: Delta = \
                 IDSAgent.get_best_delta(self._board, Player.WHITE, self._depth,
-                                        self._recent_board_history)
+                                        self._recent_board_history)[0]
 
             # Before performing the move, save the current board into the recent
             # boards history list.
@@ -78,10 +78,10 @@ class IDSAgent:
 
             # Perform the move, replacing the reference to the old board with
             # the new one.
-            self._board = self._board.get_next_board(best_delta[0])
+            self._board = self._board.get_next_board(best_delta)
 
             # Print the delta/move made.
-            print(best_delta[0])
+            print(best_delta)
 
     @staticmethod
     def get_board_ratings(board: Board, depth: int,
