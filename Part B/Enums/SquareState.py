@@ -28,12 +28,12 @@ class SquareState(Enum):
         is a part of.
         """
         if (self == SquareState.OPEN):
-            return SquareState._openRepresentation.value
+            return SquareState._OPEN_REPRESENTATION.value
 
         if (self == SquareState.ELIMINATED):
-            return SquareState._eliminatedRepresentation.value
+            return SquareState._ELIMINATED_REPRESENTATION.value
 
         if (self == SquareState.CORNER):
-            return SquareState._cornerRepresentation.value
+            return SquareState._CORNER_REPRESENTATION.value
 
         raise ValueError("Invalid SquareState: No representation found.")
