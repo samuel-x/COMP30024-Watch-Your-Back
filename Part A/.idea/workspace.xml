@@ -2,8 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="19c5cdd1-2cea-41e0-ae35-71f139c1fb34" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/../Part B/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../Part B/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/../Part B/Classes/Piece.py" afterPath="$PROJECT_DIR$/../Part B/Classes/Piece.py" />
+      <change beforePath="$PROJECT_DIR$/../Part B/Classes/Square.py" afterPath="$PROJECT_DIR$/../Part B/Classes/Square.py" />
       <change beforePath="$PROJECT_DIR$/../Part B/Enums/Player.py" afterPath="$PROJECT_DIR$/../Part B/Enums/Player.py" />
+      <change beforePath="$PROJECT_DIR$/../Part B/Enums/SquareState.py" afterPath="$PROJECT_DIR$/../Part B/Enums/SquareState.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -37,21 +41,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Player.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Player.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Enums/Player.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="418">
-              <caret line="19" column="8" lean-forward="false" selection-start-line="19" selection-start-column="8" selection-end-line="23" selection-end-column="53" />
+            <state relative-caret-position="506">
+              <caret line="23" column="53" lean-forward="true" selection-start-line="14" selection-start-column="8" selection-end-line="23" selection-end-column="53" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SquareState.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="SquareState.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Enums/SquareState.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="528">
-              <caret line="24" column="35" lean-forward="false" selection-start-line="24" selection-start-column="35" selection-end-line="24" selection-end-column="35" />
+            <state relative-caret-position="550">
+              <caret line="25" column="21" lean-forward="true" selection-start-line="25" selection-start-column="21" selection-end-line="25" selection-end-column="21" />
               <folding />
             </state>
           </provider>
@@ -702,14 +706,6 @@
     <entry file="file://$PROJECT_DIR$/parta.py" />
     <entry file="file://$PROJECT_DIR$/Classes/Node.py" />
     <entry file="file://$PROJECT_DIR$/comments.txt" />
-    <entry file="file://$PROJECT_DIR$/Enums/SquareState.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="528">
-          <caret line="24" column="35" lean-forward="false" selection-start-line="24" selection-start-column="35" selection-end-line="24" selection-end-column="35" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/parta.py" />
     <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
       <provider selected="true" editor-type-id="text-editor">
@@ -730,14 +726,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-198">
           <caret line="0" column="25" lean-forward="true" selection-start-line="0" selection-start-column="25" selection-end-line="0" selection-end-column="25" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Classes/Square.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="550">
-          <caret line="29" column="50" lean-forward="true" selection-start-line="29" selection-start-column="50" selection-end-line="29" selection-end-column="50" />
           <folding />
         </state>
       </provider>
@@ -776,8 +764,24 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Enums/Player.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="418">
-          <caret line="19" column="8" lean-forward="false" selection-start-line="19" selection-start-column="8" selection-end-line="23" selection-end-column="53" />
+        <state relative-caret-position="506">
+          <caret line="23" column="53" lean-forward="true" selection-start-line="14" selection-start-column="8" selection-end-line="23" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Classes/Square.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="550">
+          <caret line="29" column="50" lean-forward="true" selection-start-line="29" selection-start-column="50" selection-end-line="29" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Enums/SquareState.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="550">
+          <caret line="25" column="21" lean-forward="true" selection-start-line="25" selection-start-column="21" selection-end-line="25" selection-end-column="21" />
           <folding />
         </state>
       </provider>

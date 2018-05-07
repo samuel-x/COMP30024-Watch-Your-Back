@@ -21,13 +21,13 @@ class Piece():
         self._id = Piece._id
         Piece._id += 1
 
-    def getRepresentation(self):
+    def get_representation(self):
         """
         Returns the string representation for the piece. Expected use would be
         for printing the board that the square (which has this piece) is a part
         of.
         """
-        return self.owner.getRepresentation()
+        return self.owner.get_representation()
 
     def __eq__(self, other: 'Piece'):
         """

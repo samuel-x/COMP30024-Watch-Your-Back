@@ -12,7 +12,7 @@ class Player(Enum):
     # Black player.
     BLACK = 1
 
-    def getRepresentation(self):
+    def get_representation(self):
         """
         Returns the string representation for the piece. Expected use would be
         for printing the board that the square (which has this piece) is a part
@@ -23,4 +23,3 @@ class Player(Enum):
 
         if (self == Player.BLACK):
             return Player._BLACK_REPRESENTATION.value
-        

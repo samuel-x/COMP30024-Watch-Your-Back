@@ -32,9 +32,9 @@ class Square():
         is a part of.
         """
         if (self.state == SquareState.OCCUPIED):
-            return self.occupant.getRepresentation()
+            return self.occupant.get_representation()
         else:
-            return self.state.getRepresentation()
+            return self.state.get_representation()
 
 
     def __eq__(self, other: 'Square'):
