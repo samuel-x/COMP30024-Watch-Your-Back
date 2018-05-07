@@ -25,7 +25,7 @@ class Square():
         self.occupant = occupant
         self.state = state
 
-    def getRepresentation(self):
+    def get_representation(self):
         """
         Returns the string representation for the square. Expected use would be
         for printing the board that the square
