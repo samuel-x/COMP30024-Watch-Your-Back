@@ -1,0 +1,8 @@
+Machine Learning
+	Reinforcement learning
+		Q-Learning
+
+	Libraries
+		Shogun
+		TensorFlow
+		Sci-kit Learn

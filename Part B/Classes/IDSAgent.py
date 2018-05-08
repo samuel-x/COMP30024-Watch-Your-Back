@@ -6,7 +6,7 @@ from Classes.Delta import Delta
 from Classes.Pos2D import Pos2D
 from Classes.Square import Square
 from Enums.GamePhase import GamePhase
-from Enums.Player import Player
+from Enums.PlayerColor import PlayerColor
 
 
 class IDSAgent:
@@ -60,14 +60,14 @@ class IDSAgent:
         # While the game is not finished, perform the algorithm.
         while (self._board.phase != GamePhase.FINISHED):
             # Evaluate all of the possible moves from this board.
-            deltas: List[Delta] = self._board.get_all_valid_moves(Player.WHITE)
+            deltas: List[Delta] = self._board.get_all_valid_moves(PlayerColor.WHITE)
             # Shuffling the calculated deltas can assist in avoiding endless
             # loops.
             random.shuffle(deltas)
 
             # Get the best move to perform.
             best_delta: Delta = \
-                IDSAgent.get_best_delta(self._board, Player.WHITE, self._depth,
+                IDSAgent.get_best_delta(self._board, PlayerColor.WHITE, self._depth,
                                         self._recent_board_history)[0]
 
             # Before performing the move, save the current board into the recent
@@ -117,7 +117,7 @@ class IDSAgent:
 
         # Evaluate all possible moves from this board and keep track of the best
         # one.
-        best_rating = IDSAgent.get_best_delta(board, Player.WHITE, depth,
+        best_rating = IDSAgent.get_best_delta(board, PlayerColor.WHITE, depth,
                                               recent_board_history)[1]
 
         # Return the list of ratings from the best move and attach this given
@@ -125,7 +125,7 @@ class IDSAgent:
         return best_rating + [IDSAgent.get_heuristic_value(board)]
 
     @staticmethod
-    def get_best_delta(board: Board, player: Player, depth: int,
+    def get_best_delta(board: Board, player: PlayerColor, depth: int,
                        recent_board_history: List[str]) \
             -> Tuple[Delta, List[float]]:
         """
@@ -183,8 +183,8 @@ class IDSAgent:
         """
         # Get a list of all squares with white pieces and a list of squares with
         # black pieces.
-        white_squares: List[Square] = board.get_player_squares(Player.WHITE)
-        black_squares: List[Square] = board.get_player_squares(Player.BLACK)
+        white_squares: List[Square] = board.get_player_squares(PlayerColor.WHITE)
+        black_squares: List[Square] = board.get_player_squares(PlayerColor.BLACK)
 
         # If there are any black pieces, calculate the sum of all white pieces'
         # manhattan displacement to the first black piece in the list. This

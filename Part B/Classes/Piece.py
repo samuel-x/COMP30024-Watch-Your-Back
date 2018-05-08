@@ -1,4 +1,4 @@
-from Enums.Player import Player
+from Enums.PlayerColor import PlayerColor
 
 
 class Piece():
@@ -7,7 +7,7 @@ class Piece():
     """
 
     # The player that the piece belongs to.
-    owner: Player
+    owner: PlayerColor
 
     # This is a counter used to uniquely identify every instance of Piece in the
     # game. This comes into play when a piece jumps over an enemy piece. We want
@@ -16,7 +16,7 @@ class Piece():
     # board._get_killed_positions()).
     _id: int = 0
 
-    def __init__(self, owner: Player):
+    def __init__(self, owner: PlayerColor):
         self.owner = owner
         self._id = Piece._id
         Piece._id += 1

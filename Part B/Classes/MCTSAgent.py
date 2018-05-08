@@ -7,7 +7,7 @@ from Classes import Delta
 from Classes.Board import Board
 from Classes.Node import Node
 from Enums.GamePhase import GamePhase
-from Enums.Player import Player
+from Enums.PlayerColor import PlayerColor
 from Misc.Utilities import Utilities as Utils
 
 
@@ -100,7 +100,7 @@ class MCTSAgent():
 
         self._back_propagate(leaf, self._board.winner)
 
-    def _back_propagate(self, node: Node, winner: Player):
+    def _back_propagate(self, node: Node, winner: PlayerColor):
         """
         TODO
         Can be done recursively, but no point in using a stack. Iteratively
