@@ -2,8 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="19c5cdd1-2cea-41e0-ae35-71f139c1fb34" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/../Part A/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../Part A/.idea/workspace.xml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/Player.py" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/Classes/Board.py" afterPath="$PROJECT_DIR$/Classes/Board.py" />
+      <change beforePath="$PROJECT_DIR$/Classes/Delta.py" afterPath="$PROJECT_DIR$/Classes/Delta.py" />
+      <change beforePath="$PROJECT_DIR$/Classes/IDSAgent.py" afterPath="$PROJECT_DIR$/Classes/IDSAgent.py" />
+      <change beforePath="$PROJECT_DIR$/Classes/MCTSAgent.py" afterPath="$PROJECT_DIR$/Classes/MCTSAgent.py" />
+      <change beforePath="$PROJECT_DIR$/Classes/Piece.py" afterPath="$PROJECT_DIR$/Classes/Piece.py" />
+      <change beforePath="$PROJECT_DIR$/Enums/Player.py" afterPath="$PROJECT_DIR$/Enums/PlayerColor.py" />
+      <change beforePath="$PROJECT_DIR$/Misc/Utilities.py" afterPath="$PROJECT_DIR$/Misc/Utilities.py" />
+      <change beforePath="$PROJECT_DIR$/referee.py" afterPath="$PROJECT_DIR$/referee.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -24,7 +32,7 @@
       <file leaf-file-name="Board.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Classes/Board.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
+            <state relative-caret-position="0">
               <caret line="18" column="31" lean-forward="false" selection-start-line="18" selection-start-column="31" selection-end-line="18" selection-end-column="31" />
               <folding>
                 <element signature="e#0#25#0" expanded="true" />
@@ -53,11 +61,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="referee.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="referee.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/referee.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="462">
-              <caret line="72" column="25" lean-forward="true" selection-start-line="72" selection-start-column="25" selection-end-line="72" selection-end-column="25" />
+            <state relative-caret-position="789">
+              <caret line="153" column="7" lean-forward="true" selection-start-line="153" selection-start-column="7" selection-end-line="153" selection-end-column="7" />
               <folding />
             </state>
           </provider>
@@ -66,8 +74,8 @@
       <file leaf-file-name="IDSAgent.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Classes/IDSAgent.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4070">
-              <caret line="193" column="35" lean-forward="false" selection-start-line="193" selection-start-column="35" selection-end-line="193" selection-end-column="35" />
+            <state relative-caret-position="1430">
+              <caret line="73" column="34" lean-forward="true" selection-start-line="73" selection-start-column="34" selection-end-line="73" selection-end-column="34" />
               <folding />
             </state>
           </provider>
@@ -83,21 +91,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Player.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Enums/Player.py">
+      <file leaf-file-name="PlayerColor.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Enums/PlayerColor.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="396">
-              <caret line="18" column="11" lean-forward="false" selection-start-line="18" selection-start-column="11" selection-end-line="18" selection-end-column="11" />
+            <state relative-caret-position="132">
+              <caret line="6" column="4" lean-forward="false" selection-start-line="6" selection-start-column="4" selection-end-line="6" selection-end-column="4" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Utilities.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Misc/Utilities.py">
+      <file leaf-file-name="Player.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Player.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="17" column="18" lean-forward="false" selection-start-line="17" selection-start-column="18" selection-end-line="17" selection-end-column="18" />
+            <state relative-caret-position="851">
+              <caret line="43" column="10" lean-forward="false" selection-start-line="43" selection-start-column="10" selection-end-line="43" selection-end-column="10" />
               <folding />
             </state>
           </provider>
@@ -188,6 +196,9 @@
         <option value="$PROJECT_DIR$/Main.py" />
         <option value="$PROJECT_DIR$/Enums/SquareState.py" />
         <option value="$PROJECT_DIR$/Classes/MCTSAgent.py" />
+        <option value="$PROJECT_DIR$/referee.py" />
+        <option value="$PROJECT_DIR$/Enums/PlayerColor.py" />
+        <option value="$PROJECT_DIR$/Player.py" />
       </list>
     </option>
   </component>
@@ -456,28 +467,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Classes/Piece.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="10" column="0" lean-forward="true" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Anaconda3/Lib/random.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5478">
-          <caret line="257" column="0" lean-forward="false" selection-start-line="257" selection-start-column="0" selection-end-line="257" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Classes/Pos2D.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="616">
-          <caret line="28" column="11" lean-forward="true" selection-start-line="28" selection-start-column="11" selection-end-line="28" selection-end-column="11" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Misc/Utilities.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="330">
@@ -531,6 +520,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="154">
           <caret line="7" column="12" lean-forward="false" selection-start-line="7" selection-start-column="12" selection-end-line="7" selection-end-column="12" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -563,7 +553,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Enums/Player.py">
+    <entry file="file://$PROJECT_DIR$/Enums/PlayerColor.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="352">
           <caret line="16" column="34" lean-forward="false" selection-start-line="16" selection-start-column="34" selection-end-line="16" selection-end-column="34" />
@@ -617,6 +607,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="154">
           <caret line="7" column="12" lean-forward="true" selection-start-line="7" selection-start-column="12" selection-end-line="7" selection-end-column="12" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -641,7 +632,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Enums/Player.py">
+    <entry file="file://$PROJECT_DIR$/Enums/PlayerColor.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="352">
           <caret line="16" column="34" lean-forward="true" selection-start-line="16" selection-start-column="34" selection-end-line="16" selection-end-column="34" />
@@ -749,6 +740,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="550">
           <caret line="25" column="21" lean-forward="false" selection-start-line="25" selection-start-column="21" selection-end-line="25" selection-end-column="21" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -756,14 +748,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="330">
           <caret line="15" column="5" lean-forward="false" selection-start-line="15" selection-start-column="5" selection-end-line="15" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Enums/Player.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="18" column="11" lean-forward="false" selection-start-line="18" selection-start-column="11" selection-end-line="18" selection-end-column="11" />
           <folding />
         </state>
       </provider>
@@ -778,7 +762,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Classes/Board.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
+        <state relative-caret-position="0">
           <caret line="18" column="31" lean-forward="false" selection-start-line="18" selection-start-column="31" selection-end-line="18" selection-end-column="31" />
           <folding>
             <element signature="e#0#25#0" expanded="true" />
@@ -790,14 +774,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="220">
           <caret line="13" column="24" lean-forward="false" selection-start-line="13" selection-start-column="24" selection-end-line="13" selection-end-column="24" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Classes/IDSAgent.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4070">
-          <caret line="193" column="35" lean-forward="false" selection-start-line="193" selection-start-column="35" selection-end-line="193" selection-end-column="35" />
           <folding />
         </state>
       </provider>
@@ -844,10 +820,50 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Classes/IDSAgent.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1430">
+          <caret line="73" column="34" lean-forward="true" selection-start-line="73" selection-start-column="34" selection-end-line="73" selection-end-column="34" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/argparse.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1452">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2017.3/system/python_stubs/705044449/gc.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/referee.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="462">
-          <caret line="72" column="25" lean-forward="true" selection-start-line="72" selection-start-column="25" selection-end-line="72" selection-end-column="25" />
+        <state relative-caret-position="789">
+          <caret line="153" column="7" lean-forward="true" selection-start-line="153" selection-start-column="7" selection-end-line="153" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Enums/PlayerColor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="132">
+          <caret line="6" column="4" lean-forward="false" selection-start-line="6" selection-start-column="4" selection-end-line="6" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Player.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="851">
+          <caret line="43" column="10" lean-forward="false" selection-start-line="43" selection-start-column="10" selection-end-line="43" selection-end-column="10" />
           <folding />
         </state>
       </provider>

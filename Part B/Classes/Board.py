@@ -6,7 +6,7 @@ from Classes.Piece import Piece
 from Classes.Pos2D import Pos2D
 from Classes.Square import Square
 from Enums.GamePhase import GamePhase
-from Enums.Player import Player
+from Enums.PlayerColor import PlayerColor
 from Enums.SquareState import SquareState
 
 
@@ -50,7 +50,7 @@ class Board():
     phase: GamePhase
     # Equals None while the game isn't done. If phase == FINISHED and winner is
     # None, that the game was a tie.
-    winner: Player
+    winner: PlayerColor
 
     @staticmethod
     def _init_squares() -> Dict[Pos2D, Square]:
@@ -91,12 +91,12 @@ class Board():
                 elif (char == SquareState.OPEN.get_representation()):
                     new_board.squares[pos] = \
                         Square(pos, None, SquareState.OPEN)
-                elif (char == Player.WHITE.get_representation()):
+                elif (char == PlayerColor.WHITE.get_representation()):
                     new_board.squares[pos] = \
-                        Square(pos, Piece(Player.WHITE), SquareState.OCCUPIED)
-                elif (char == Player.BLACK.get_representation()):
+                        Square(pos, Piece(PlayerColor.WHITE), SquareState.OCCUPIED)
+                elif (char == PlayerColor.BLACK.get_representation()):
                     new_board.squares[pos] = \
-                        Square(pos, Piece(Player.BLACK), SquareState.OCCUPIED)
+                        Square(pos, Piece(PlayerColor.BLACK), SquareState.OCCUPIED)
 
         return new_board
 
@@ -118,7 +118,7 @@ class Board():
         return second_pos + displacement
 
     def __init__(self, squares: Optional[Dict[Pos2D, Square]], round_num: int,
-                 phase: GamePhase, winner: Player = None):
+                 phase: GamePhase, winner: PlayerColor = None):
         if (squares is None):
             self.squares = self._init_squares()
         else:
@@ -128,7 +128,7 @@ class Board():
         self.phase = phase
         self.winner = winner
 
-    def get_num_moves(self, player: Player) -> int:
+    def get_num_moves(self, player: PlayerColor) -> int:
         """
         This method takes a player and returns the number of possible moves that
         they can take. This is required for Part A question 1 as defined in the
@@ -153,14 +153,14 @@ class Board():
 
         return count
 
-    def get_valid_placements(self, player: Player) -> List[Delta]:
+    def get_valid_placements(self, player: PlayerColor) -> List[Delta]:
         """
         TODO
         :return:
         """
 
         player_zone_corner_positions: List[Pos2D]
-        if (player == Player.WHITE):
+        if (player == PlayerColor.WHITE):
             player_zone_corner_positions = \
                 Board._WHITE_PLACEMENT_ZONE_CORNER_POSITIONS
         else:
@@ -228,7 +228,7 @@ class Board():
 
         return valid_moves
 
-    def get_all_valid_moves(self, player: Player) -> List[Delta]:
+    def get_all_valid_moves(self, player: PlayerColor) -> List[Delta]:
         """
         Returns a list of all possible moves for a given player.
         """
@@ -300,7 +300,7 @@ class Board():
 
         return next_board
 
-    def get_player_squares(self, player: Player) -> List[Square]:
+    def get_player_squares(self, player: PlayerColor) -> List[Square]:
         """
         Returns a list of all squares that have a piece on them that is
         controlled by the given player.
@@ -407,7 +407,7 @@ class Board():
 
         return killed_positions
 
-    def _get_player_squares(self, player: Player) -> List[Square]:
+    def _get_player_squares(self, player: PlayerColor) -> List[Square]:
         """
         TODO
         :param player:
@@ -540,26 +540,26 @@ class Board():
             # changes to the phase.
             return
 
-        player_square_counts: Dict[Player, int] = \
-            {Player.WHITE: len(self._get_player_squares(Player.WHITE)),
-             Player.BLACK: len(self._get_player_squares(Player.BLACK))}
+        player_square_counts: Dict[PlayerColor, int] = \
+            {PlayerColor.WHITE: len(self._get_player_squares(PlayerColor.WHITE)),
+             PlayerColor.BLACK: len(self._get_player_squares(PlayerColor.BLACK))}
 
-        if (player_square_counts[Player.WHITE]
+        if (player_square_counts[PlayerColor.WHITE]
                 < Board._MIN_NUM_PIECES_BEFORE_LOSS
-                and player_square_counts[Player.BLACK]
+                and player_square_counts[PlayerColor.BLACK]
                 < Board._MIN_NUM_PIECES_BEFORE_LOSS):
             # Tie
             self.winner = None
             self.phase = GamePhase.FINISHED
-        elif (player_square_counts[Player.BLACK]
+        elif (player_square_counts[PlayerColor.BLACK]
               < Board._MIN_NUM_PIECES_BEFORE_LOSS):
             # White wins
-            self.winner = Player.WHITE
+            self.winner = PlayerColor.WHITE
             self.phase = GamePhase.FINISHED
-        elif (player_square_counts[Player.WHITE]
+        elif (player_square_counts[PlayerColor.WHITE]
               < Board._MIN_NUM_PIECES_BEFORE_LOSS):
             # Black wins
-            self.winner = Player.BLACK
+            self.winner = PlayerColor.BLACK
             self.phase = GamePhase.FINISHED
 
     def __str__(self) -> str:
@@ -586,6 +586,6 @@ class Board():
         squares: Dict[Pos2D, Square] = deepcopy(self.squares)
         round_num: int = self.round_num
         phase: GamePhase = self.phase
-        winner: Player = self.winner
+        winner: PlayerColor = self.winner
 
         return Board(squares, round_num, phase, winner)

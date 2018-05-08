@@ -23,7 +23,7 @@ def main():
     print(VERSION_INFO)
 
     # initialise the game and players
-    game  = _Game()
+    game = _Game()
     try:
         white = _Player(options.white_player,'white',options.time,options.space)
         black = _Player(options.black_player,'black',options.time,options.space)
@@ -255,10 +255,12 @@ class _CountdownTimer:
         """
         self.limit = limit
         self.clock = 0
+
     def __enter__(self):
         # start timing
         self.start = time.process_time()
         return self # unused
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         # accumulate elapsed time since __enter__
         elapsed = time.process_time() - self.start

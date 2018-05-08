@@ -1,6 +1,6 @@
 from enum import Enum
 
-class Player(Enum):
+class PlayerColor(Enum):
     """
     Used to represent a player.
     """
@@ -18,8 +18,8 @@ class Player(Enum):
         for printing the board that the square (which has this piece) is a part
         of.
         """
-        if (self == Player.WHITE):
-            return Player._WHITE_REPRESENTATION.value
+        if (self == PlayerColor.WHITE):
+            return PlayerColor._WHITE_REPRESENTATION.value
 
-        if (self == Player.BLACK):
-            return Player._BLACK_REPRESENTATION.value
+        if (self == PlayerColor.BLACK):
+            return PlayerColor._BLACK_REPRESENTATION.value

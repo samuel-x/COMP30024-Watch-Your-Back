@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from Classes.Pos2D import Pos2D
 from Classes.Square import Square
-from Enums.Player import Player
+from Enums.PlayerColor import PlayerColor
 
 
 class Delta():
@@ -28,9 +28,9 @@ class Delta():
     # A list of squares that became corner pieces as a result of a death zone.
     new_corners: List[Square]
     # A reference to the enum representing the player who made the move/delta.
-    player: Player
+    player: PlayerColor
 
-    def __init__(self, player: Player, move_origin: Optional[Square], move_target: Square,
+    def __init__(self, player: PlayerColor, move_origin: Optional[Square], move_target: Square,
                  killed_square_positions: Optional[List[Pos2D]], eliminated_squares: List[Square],
                  new_corners: List[Square]):
         self.player = player
