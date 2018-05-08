@@ -1,8 +1,22 @@
 Machine Learning
 	Reinforcement learning
 		Q-Learning
+			Section 13.3 (pg 373) in Machine Learning by Tom M. Mitchell (ML TMM.)
+
+	Temporal Difference Learning
+		Section 13.5 (pg 383) in ML TMM.
+		Seems to be too much like MCTS and so has the same issues.
 
 	Libraries
 		Shogun
 		TensorFlow
 		Sci-kit Learn
+
+Non-machine learning
+	Alpha-beta Pruning
+		Section 5.3 (pg 167) in AI book.
+	SSS*
+		https://en.wikipedia.org/wiki/SSS*
+	Principal Variation Search aka NegaScout
+		https://en.wikipedia.org/wiki/Principal_variation_search
+		Apparently performs better than both Alpha-beta and SSS*, at the expense of more space.

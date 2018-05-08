@@ -40,6 +40,13 @@ class Delta():
         self.eliminated_squares = eliminated_squares
         self.new_corners = new_corners
 
+    def get_referee_form(self):
+        if (self.move_origin is None):
+            return self.move_target.pos.get_referee_form()
+        else:
+            return (self.move_origin.pos.get_referee_form(),
+                    self.move_target.pos.get_referee_form())
+
     def __str__(self) -> str:
         """
         Returns a string representation of the calling instance.
@@ -59,3 +66,10 @@ class Delta():
                        other.killed_square_positions)
 
         return self_tuple == other_tuple
+
+    def __hash__(self):
+        components = (self.move_origin, self.move_target,
+                      *self.killed_square_positions, *self.eliminated_squares,
+                      *self.new_corners, self.player)
+
+        return hash(components)
