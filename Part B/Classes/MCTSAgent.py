@@ -17,7 +17,7 @@ class MCTSAgent():
     Tree Search algorithm.
     """
 
-    _EXPLORATIONMULTIPLIER: float = sqrt(2)
+    _EXPLORATION_MULTIPLIER: float = sqrt(2)
 
     # A reference to the root node in the tree that's being searched by MCTS.
     tree_root: Node
@@ -28,7 +28,7 @@ class MCTSAgent():
         self.tree_root = tree_root
         self._board = start_board
 
-        if (seed != None):
+        if (seed is not None):
             random.seed(seed)
 
     def train(self, duration_seconds: int):
@@ -42,7 +42,7 @@ class MCTSAgent():
 
     def _select(self, node: Node, total_num_simulations: int) -> Node:
         scores: List[Tuple[Node, float]] = []
-        unexplored_nodes_score: float = Utils.UCB1(1, 2, total_num_simulations, MCTSAgent._EXPLORATIONMULTIPLIER)
+        unexplored_nodes_score: float = Utils.UCB1(1, 2, total_num_simulations, MCTSAgent._EXPLORATION_MULTIPLIER)
         # A list of all deltas which have already been explored at least once. Therefore, they are nodes.
         children: List[Node] = node.children
         # A list of all valid deltas from the given board.
@@ -54,7 +54,7 @@ class MCTSAgent():
                 # from 'deltas' so that it only contains unexplored moves.
                 deltas.remove(child.delta)
                 scores.append((child, Utils.UCB1(child.wins, child.num_simulations, total_num_simulations,
-                                                 MCTSAgent._EXPLORATIONMULTIPLIER)))
+                                                 MCTSAgent._EXPLORATION_MULTIPLIER)))
 
             # Since there are no unexplored options available, we'll set its score to -1 such that the algorithm won't
             # attempt to choose an unexplored option (since there are none).
@@ -91,7 +91,7 @@ class MCTSAgent():
             if (self._board != 1): # TODO Remove this
                 selection = "({}, {}) -> NODE" if leaf.num_simulations > 2 else "({}, {}) -> EXPLORE"
                 print("{:3}: {} : {}".format(self._board.round_num - 1, leaf.delta.player, selection.format(leaf.wins, leaf.num_simulations)))
-                if (leaf.delta.move_origin != None):
+                if (leaf.delta.move_origin is not None):
                     print("{} -> ".format(leaf.delta.move_origin.pos), end="")
                 print("{}".format(leaf.delta.move_target.pos))
 
@@ -110,20 +110,20 @@ class MCTSAgent():
         :return:
         """
 
-        while (node != None):
+        while (node is not None):
             node.num_simulations += 1
 
-            if ((node.parent == None and node.children[0].delta.player == winner) or
-                    (node.delta != None and node.delta.player == winner)):
+            if ((node.parent is None and node.children[0].delta.player == winner) or
+                    (node.delta is not None and node.delta.player == winner)):
                 node.wins += 1
-            elif (winner == None):
+            elif (winner is None):
                 # Must have been a tie.
                 node.wins += 0.5
 
             # TODO Remove this (temp for printing/debugging)
             # if (node.board.round_num != 1):
             #     print("{:3}: {}: ".format(node.board.round_num - 1, node.delta.player), end="")
-            #     if (node.delta.move_origin != None):
+            #     if (node.delta.move_origin is not None):
             #         print("{} -> ".format(node.delta.move_origin.pos), end="")
             #     print("{}".format(node.delta.move_target.pos))
             #
