@@ -138,7 +138,7 @@ class Player():
             # Movement.
             assert(self._board.phase == GamePhase.MOVEMENT)
 
-            deltas = self._board.get_valid_movements(positions[0])
+            deltas = self._board.get_possible_deltas(positions[0])
 
             for delta in deltas:
                 if delta.move_target.pos == positions[1]:
