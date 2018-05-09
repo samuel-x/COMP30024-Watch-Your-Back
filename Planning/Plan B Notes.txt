@@ -36,7 +36,7 @@ Non-machine learning
 	Occurs when getting the squares that are going to be killed by the corners changing and the killing piece is part of the "simultaneous move" e.g. X B W where X is a new corner and W was just moved to its position. (B is killed). 
 	Reason: getting corner kills considers state of board before the move W is made.
 		Probably means that it also will consider B killed in - B W situation where W is moved and - gets replaced with X.
-	Solution: ?
+	UPDATE: Appears solved. Will require more testing.
 
 Genetic Algorithm
 	https://www.youtube.com/watch?v=RxTfc4JLYKs

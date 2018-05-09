@@ -18,7 +18,7 @@ class Player():
     _RATING_NUM_ROUNDING: int = 10
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
-    _SEED: int = 1337
+    _SEED: int = 13
 
     # A reference to the current board that the agent is on.
     _board: Board
