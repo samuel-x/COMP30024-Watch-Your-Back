@@ -115,12 +115,12 @@ class Board():
                       self._get_killed_positions(Piece(player), square.pos), [],
                       []) for square in valid_squares]
 
-    def get_valid_movements(self, pos: Pos2D) -> List[Delta]:
+    def get_possible_deltas(self, pos: Pos2D) -> List[Delta]:
         """
         Given a position on the board, returns a list of possible moves (or
         'deltas') from that position.
         """
-        valid_moves: List[Delta] = []
+        possible_deltas: List[Delta] = []
 
         potential_square_eliminations: List[Square] = []
         potential_new_corners: List[Square] = []
@@ -156,13 +156,14 @@ class Board():
                 self._get_killed_positions(move_origin.occupant,
                                            move_target.pos) \
                 + [square.pos for square in potential_corner_kills]
+                # TODO Here, add function to assess kills from new corners.
             delta: Delta = Delta(self.squares[pos].occupant.owner, move_origin,
                                  move_target, potential_kills,
                                  potential_square_eliminations,
                                  potential_new_corners)
-            valid_moves.append(delta)
+            possible_deltas.append(delta)
 
-        return valid_moves
+        return possible_deltas
 
     def get_all_valid_moves(self, player: PlayerColor) -> List[Delta]:
         """
@@ -179,7 +180,7 @@ class Board():
             player_squares: List[Square] = self._get_player_squares(player)
             # Iterate over each of these squares and add their valid moves to
             # 'valid_moves'.
-            [valid_moves.extend(self.get_valid_movements(square.pos)) for square
+            [valid_moves.extend(self.get_possible_deltas(square.pos)) for square
              in player_squares]
 
             return valid_moves
@@ -353,8 +354,9 @@ class Board():
                 square.state == SquareState.OCCUPIED
                 and square.occupant.owner == player]
 
-    def _get_death_zone_changes(self) -> Tuple[List[Square], List[Square],
-                                               List[Square]]:
+    def _get_death_zone_changes(self, move_origin: Pos2D, move_target: Pos2D,
+                                player: PlayerColor) -> \
+            Tuple[List[Square], List[Square], List[Square]]:
         """
         TODO
         Does not take into account the round num. Simply returns a tuple of
@@ -484,17 +486,20 @@ class Board():
                 < Board._MIN_NUM_PIECES_BEFORE_LOSS
                 and player_square_counts[PlayerColor.BLACK]
                 < Board._MIN_NUM_PIECES_BEFORE_LOSS):
+            print("TIE!", player_square_counts[PlayerColor.WHITE], player_square_counts[PlayerColor.BLACK])
             # Tie
             self.winner = None
             self.phase = GamePhase.FINISHED
         elif (player_square_counts[PlayerColor.BLACK]
               < Board._MIN_NUM_PIECES_BEFORE_LOSS):
             # White wins
+            print("WHITE WINS!", player_square_counts[PlayerColor.WHITE], player_square_counts[PlayerColor.BLACK])
             self.winner = PlayerColor.WHITE
             self.phase = GamePhase.FINISHED
         elif (player_square_counts[PlayerColor.WHITE]
               < Board._MIN_NUM_PIECES_BEFORE_LOSS):
             # Black wins
+            print("BLACK WINS!", player_square_counts[PlayerColor.WHITE], player_square_counts[PlayerColor.BLACK])
             self.winner = PlayerColor.BLACK
             self.phase = GamePhase.FINISHED
 

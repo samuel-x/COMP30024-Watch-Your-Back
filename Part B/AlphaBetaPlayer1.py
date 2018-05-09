@@ -25,7 +25,7 @@ class Player():
     _color: PlayerColor
     # The depth to go in each iteration of the iterative-deepening search
     # algorithm i.e. number of moves to look ahead.
-    _depth: int = 2
+    _depth: int = 1
 
     def __init__(self, color: str):
         """
@@ -136,7 +136,7 @@ class Player():
             # Movement.
             assert(self._board.phase == GamePhase.MOVEMENT)
 
-            deltas = self._board.get_valid_movements(positions[0])
+            deltas = self._board.get_possible_deltas(positions[0])
 
             for delta in deltas:
                 if delta.move_target.pos == positions[1]:
