@@ -172,3 +172,4 @@ venv.bak/
 # Custom
 Planning/~$Planning.xlsx
 *.zip
+*.xml

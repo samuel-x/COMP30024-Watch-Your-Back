@@ -24,3 +24,11 @@ Non-machine learning
 	Principal Variation Search aka NegaScout
 		https://en.wikipedia.org/wiki/Principal_variation_search
 		Apparently performs better than both Alpha-beta and SSS*, at the expense of more space.
+
+
+Heuristics
+	Try genetic algorithms after heuristics have been implemented to discover best weights.
+	Mobility (number of available moves)
+	Cohesiveness (number of allied neighbors)
+		Take into account pieces two moves away e.g. W - W?
+		Make the "cohesiveness" continuous? e.g. average distance to allied pieces
