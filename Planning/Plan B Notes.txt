@@ -15,6 +15,10 @@ Machine Learning
 Non-machine learning
 	Alpha-beta Pruning
 		Section 5.3 (pg 167) in AI book.
+		Work on a way to manage time.
+			Each round can spend REMAINING_TIME / num_expected_rounds
+			How to estimate num_expected rounds?
+			Once out of time, choose move with best alpha-beta value at that moment.
 	SSS*
 		https://en.wikipedia.org/wiki/SSS*
 	Principal Variation Search aka NegaScout
