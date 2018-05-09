@@ -19,7 +19,7 @@ class Player():
     _RATING_NUM_ROUNDING: int = 10
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
-    _SEED: int = 1337
+    _SEED: int = 2
     _DIST_WEIGHT: float = 0.001
     _PREPARE_TO_CENTER: int = 32
 
@@ -179,9 +179,8 @@ class Player():
     def get_heuristic_value(board: Board):
         """
         Given a board, calculates and returns its rating based on heuristics.
-        This heuristic focuses on preserving current pieces (by moving them away from enemies)
-        until the board begins to become restricted (defined by _PREPARE_TO_CENTER), in which case
-        it'll start moving pieces towards the center of the board
+        This heuristic applies both the Aggressive and Defensive tactic, where the pieces
+
         """
 
         # Get our squares
@@ -189,10 +188,9 @@ class Player():
         black_squares: List[Square] = board.get_player_squares(PlayerColor.BLACK)
 
 
+        # Apply the defensive center movement if the board is shrinking, otherwise
+        # apply the aggressive "move towards enemies" strategy
         manhattan_dist_sum: int = 0
-
-        # If the board is beginning to close in, calculate the average manhattan
-        # distance to the center of the board and weight moves towards the center as higher.
         if board.round_num > board.death_zone_rounds[0]-Player._PREPARE_TO_CENTER:
             for white_square in white_squares:
                 manhattan_dist_center_avg: float = 0
@@ -204,13 +202,11 @@ class Player():
                         manhattan_dist_center_avg += abs(displacement_center.x) + abs(displacement_center.y)
                 manhattan_dist_sum += manhattan_dist_center_avg/count
         else:
-            # Otherwise try and avoid enemy pieces
             if (len(black_squares) > 0):
                 black_square: Square = black_squares[0]
                 for white_square in white_squares:
                     displacement: Pos2D = (black_square.pos - white_square.pos)
-                    manhattan_dist_sum -= abs(displacement.x) + abs(displacement.y)
-
+                    manhattan_dist_sum += abs(displacement.x) + abs(displacement.y)
 
         # Calculate the number of white and black pieces. This is a very
         # important heuristic that will help prioritize preserving white's own

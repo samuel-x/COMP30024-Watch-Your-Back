@@ -1,6 +1,8 @@
 import random
 from typing import List, Tuple, Dict, Union
 
+import math
+
 from Classes.Board import Board
 from Classes.Delta import Delta
 from Classes.Pos2D import Pos2D
@@ -8,6 +10,7 @@ from Classes.Square import Square
 from Enums.GamePhase import GamePhase
 from Enums.PlayerColor import PlayerColor
 from Misc.Utilities import Utilities as Utils
+import difflib
 
 
 class Player():
@@ -20,8 +23,9 @@ class Player():
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
     _SEED: int = 1337
-    _DIST_WEIGHT: float = 0.001
-    _PREPARE_TO_CENTER: int = 32
+
+    # The size of a squad
+    _SQUAD_SIZE: int = 4
 
     # A reference to the current board that the agent is on.
     _board: Board
@@ -179,38 +183,12 @@ class Player():
     def get_heuristic_value(board: Board):
         """
         Given a board, calculates and returns its rating based on heuristics.
-        This heuristic focuses on preserving current pieces (by moving them away from enemies)
-        until the board begins to become restricted (defined by _PREPARE_TO_CENTER), in which case
-        it'll start moving pieces towards the center of the board
+        This attempts to use the difflib library SequenceMatcher in order to
+        promote pieces grouping together. Our pieces will be split into _SQUAD_SIZE blocks.
         """
 
-        # Get our squares
         white_squares: List[Square] = board.get_player_squares(PlayerColor.WHITE)
         black_squares: List[Square] = board.get_player_squares(PlayerColor.BLACK)
-
-
-        manhattan_dist_sum: int = 0
-
-        # If the board is beginning to close in, calculate the average manhattan
-        # distance to the center of the board and weight moves towards the center as higher.
-        if board.round_num > board.death_zone_rounds[0]-Player._PREPARE_TO_CENTER:
-            for white_square in white_squares:
-                manhattan_dist_center_avg: float = 0
-                count: int = 1
-                for center_square in board.center_zone:
-                    if center_square != white_square.pos:
-                        count += 1
-                        displacement_center: Pos2D = (center_square - white_square.pos)
-                        manhattan_dist_center_avg += abs(displacement_center.x) + abs(displacement_center.y)
-                manhattan_dist_sum += manhattan_dist_center_avg/count
-        else:
-            # Otherwise try and avoid enemy pieces
-            if (len(black_squares) > 0):
-                black_square: Square = black_squares[0]
-                for white_square in white_squares:
-                    displacement: Pos2D = (black_square.pos - white_square.pos)
-                    manhattan_dist_sum -= abs(displacement.x) + abs(displacement.y)
-
 
         # Calculate the number of white and black pieces. This is a very
         # important heuristic that will help prioritize preserving white's own
@@ -218,13 +196,34 @@ class Player():
         num_white_pieces: int = len(white_squares)
         num_black_pieces: int = len(black_squares)
 
+        squad_coefficient: float = 0.0
+
+        # Split up our pieces into "squads" - groups of 4 pieces which will attempt to move together
+        squads: Dict[int, List[Square]] = {}
+        for i in range(0, num_white_pieces):
+            if i % Player._SQUAD_SIZE == 0:
+                squads[i//Player._SQUAD_SIZE] = [white_squares[i]]
+            else:
+                squads[i//Player._SQUAD_SIZE].append(white_squares[i])
+
+        # Iterate through all of our squads and get the ideal "N-man block" from our "squad leader" (the first piece
+        # in the squad). Then, apply sequence matcher against our current positions and the ideal N-man block.
+        squads_total: float = len(squads.keys())
+        for squad, members in squads.items():
+            formation: List[Pos2D] = board.get_valid_block(members[0].pos, int(math.floor(math.sqrt(Player._SQUAD_SIZE))))
+            actual_positions: List[Pos2D] = []
+            for member in members:
+                actual_positions.append(member.pos)
+            # TODO: Look into whether sequence matcher actually works properly with objects since it just uses the hashcode
+            # TODO: Also, group squads based on distance rather than random allocation
+            squad_coefficient += difflib.SequenceMatcher(None, formation, actual_positions).ratio()/squads_total
+
         # Return the heuristic rating by using the appropriate weights.
         if board.phase != GamePhase.PLACEMENT:
-            return round(Player._WHITE_WEIGHT * num_white_pieces
-                         - Player._BLACK_WEIGHT * num_black_pieces
-                         - Player._DIST_WEIGHT * manhattan_dist_sum,
+            return round((Player._WHITE_WEIGHT * num_white_pieces
+                         - Player._BLACK_WEIGHT * num_black_pieces) + squad_coefficient,
                          Player._RATING_NUM_ROUNDING)
         else:
-            return round(Player._WHITE_WEIGHT * num_white_pieces
-                         - Player._BLACK_WEIGHT * num_black_pieces,
+            return round((Player._WHITE_WEIGHT * num_white_pieces
+                         - Player._BLACK_WEIGHT * num_black_pieces),
                          Player._RATING_NUM_ROUNDING)
