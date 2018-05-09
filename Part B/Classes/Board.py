@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from typing import List, Dict, Tuple, Optional
 
 from Classes.Delta import Delta
@@ -115,19 +115,18 @@ class Board():
                       self._get_killed_positions(Piece(player), square.pos), [],
                       []) for square in valid_squares]
 
-    def get_valid_movements(self, pos: Pos2D) -> List[Delta]:
+    def get_possible_deltas(self, pos: Pos2D) -> List[Delta]:
         """
         Given a position on the board, returns a list of possible moves (or
         'deltas') from that position.
         """
-        valid_moves: List[Delta] = []
+        possible_deltas: List[Delta] = []
 
         potential_square_eliminations: List[Square] = []
         potential_new_corners: List[Square] = []
-        potential_corner_kills: List[Square] = []
         if (self.round_num in Board._DEATH_ZONE_ROUNDS):
-            (potential_square_eliminations, potential_new_corners,
-             potential_corner_kills) = self._get_death_zone_changes()
+            (potential_square_eliminations, potential_new_corners) = \
+                self._get_death_zone_changes()
 
         adjacent_squares: List[Square] = self._get_adjacent_squares(pos)
         # For each adjacent square, determine if it can be moved to or jumped
@@ -152,17 +151,53 @@ class Board():
             else:
                 continue
 
+            # Calculate kills that occur due to the change in corners
+            # (if applicable).
+            potential_corner_kills: List[Square] = []
+            if (self.round_num in Board._DEATH_ZONE_ROUNDS):
+                assert(len(potential_new_corners) == 4)
+
+                for corner in potential_new_corners:
+                    adj_occupied_squares: List[Square] = \
+                        [square for square in
+                         self._get_adjacent_squares(corner.pos) if
+                         square.state == SquareState.OCCUPIED]
+                    for adj_square in adj_occupied_squares:
+                        opposite_square: Square = \
+                            self.squares.get(self._get_opposite_pos(corner.pos,
+                                                                    adj_square.pos))
+
+                        if (opposite_square is None):
+                            continue
+
+                        # Edge case handling. If the delta involves moving to
+                        # the opposite square, pretend it's already there.
+                        if (opposite_square.pos == move_target.pos):
+                            opposite_square = copy(opposite_square)
+                            opposite_square.state = move_target.state
+                            opposite_square.occupant = move_target.occupant
+
+                        # First statement is edge case handling. If the delta
+                        # involves moving away from the opposite square, it
+                        # cannot killed adj_square.
+                        if (opposite_square.pos != move_origin.pos
+                                and opposite_square.state == SquareState.OCCUPIED
+                                and adj_square.occupant.owner
+                                != opposite_square.occupant.owner):
+                            potential_corner_kills.append(adj_square)
+
             potential_kills: List[Pos2D] = \
                 self._get_killed_positions(move_origin.occupant,
                                            move_target.pos) \
                 + [square.pos for square in potential_corner_kills]
+            # TODO Here, add function to assess kills from new corners.
             delta: Delta = Delta(self.squares[pos].occupant.owner, move_origin,
                                  move_target, potential_kills,
                                  potential_square_eliminations,
                                  potential_new_corners)
-            valid_moves.append(delta)
+            possible_deltas.append(delta)
 
-        return valid_moves
+        return possible_deltas
 
     def get_all_valid_moves(self, player: PlayerColor) -> List[Delta]:
         """
@@ -179,7 +214,7 @@ class Board():
             player_squares: List[Square] = self._get_player_squares(player)
             # Iterate over each of these squares and add their valid moves to
             # 'valid_moves'.
-            [valid_moves.extend(self.get_valid_movements(square.pos)) for square
+            [valid_moves.extend(self.get_possible_deltas(square.pos)) for square
              in player_squares]
 
             return valid_moves
@@ -353,8 +388,7 @@ class Board():
                 square.state == SquareState.OCCUPIED
                 and square.occupant.owner == player]
 
-    def _get_death_zone_changes(self) -> Tuple[List[Square], List[Square],
-                                               List[Square]]:
+    def _get_death_zone_changes(self) -> Tuple[List[Square], List[Square]]:
         """
         TODO
         Does not take into account the round num. Simply returns a tuple of
@@ -397,24 +431,9 @@ class Board():
             self.squares[original_corners[Board._BOTTOM_RIGHT].pos
                          + Pos2D(-1, -1)])
 
-        # Now identify all squares that will be eliminated as a result of the
-        # new corners.
-        killed_squares: List[Square] = []
-        for corner in new_corners:
-            surr_occupied_squares: List[Square] = \
-                [square for square in self._get_adjacent_squares(corner.pos) if
-                 square.state == SquareState.OCCUPIED]
-            for adj_square in surr_occupied_squares:
-                opposite_square: Square = \
-                    self.squares.get(self._get_opposite_pos(corner.pos,
-                                                            adj_square.pos))
-                if (opposite_square is not None
-                        and opposite_square.state == SquareState.OCCUPIED
-                        and adj_square.occupant.owner
-                            != opposite_square.occupant.owner):
-                    killed_squares.append(adj_square)
 
-        return (eliminated_squares, new_corners, killed_squares)
+
+        return (eliminated_squares, new_corners)
 
     def _get_corner_squares(self) -> Dict[str, Square]:
         """
