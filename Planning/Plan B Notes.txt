@@ -25,10 +25,53 @@ Non-machine learning
 		https://en.wikipedia.org/wiki/Principal_variation_search
 		Apparently performs better than both Alpha-beta and SSS*, at the expense of more space.
 
+1 - Issue:
+	White sees that it will lose (2, 1) no matter what, so has to do a -1 move. This move is random, but, without white realizing it, is putting another piece into harm's way, resulting in a forced -2 move on their next turn.
+		Solution: Heuristic that discourages putting pieces into threatened positions e.g. X W - B (if playing white)?
 
-Heuristics
-	Try genetic algorithms after heuristics have been implemented to discover best weights.
-	Mobility (number of available moves)
-	Cohesiveness (number of allied neighbors)
-		Take into account pieces two moves away e.g. W - W?
-		Make the "cohesiveness" continuous? e.g. average distance to allied pieces
+2 - Bug:
+	Edge case.
+	Hard to put into words, screenshot helps.
+		White doesn't realize that (6, 2) was destroyed.
+	Occurs when getting the squares that are going to be killed by the corners changing and the killing piece is part of the "simultaneous move" e.g. X B W where X is a new corner and W was just moved to its position. (B is killed). 
+	Reason: getting corner kills considers state of board before the move W is made.
+		Probably means that it also will consider B killed in - B W situation where W is moved and - gets replaced with X.
+	UPDATE: Appears solved. Will require more testing.
+
+Genetic Algorithm
+	https://www.youtube.com/watch?v=RxTfc4JLYKs
+	1. Generate population of size N
+		- In our case, generate N collections of random weights for our heuristic.
+
+	2. Calculate fitness for N elements
+		Need fitness function
+			Could be:
+			define num_games
+			Each AI plays floor(num_games / (n* (n-1) / 2)) games vs every other AI.
+				e.g. let's say N = 12 and num_games = 200
+				Each AI plays floor(200 / (12 * (12 - 1) / 2)) = floor(3.03) = 3 games vs every other AI.
+			Fitness function would be a given AI's win rate.
+			Would probably only have time to play with depth = 1. Results should mostly be applicable though, anyway.
+			Highly parallelizable though!
+		- Apply fitness function to each AI
+
+	3. Reproduction / Selection
+		Pick parents
+			Pick top 3 as parents (or top 2?)
+			Assign each AI a % probability based off of fitness score. e.g. scores are [5, 1, 0 , 4] for N = 4 -> [50%, 10%, 0%, 40%]
+				e.g. [0.6, 0.6, 0.2, 0] -> [score / score_sum for score in [0.6, 0.6, 0.2, 0]] -> ~[0.429, 0.429, 0.143, 0.0] - sum > 1.0
+		Make new AI
+			Crossover
+				Semi-randomly inherit components of parents to mix together into a new AI.
+					For us, perhaps average all weights?
+					Alternative (see https://stackoverflow.com/a/45202429/5372500)
+						E.g. weight 42.
+						42 -> 101010
+						Do stuff
+						Not easy since we want negative weights as well.
+			Mutation
+				e.g. mutation_rate = 0.02 i.e. 2%
+				Take cross-over'd child value and multiply by random.uniform(0.98, 1.02)
+					Might lead to local minima. Consider the 42 -> 101010 stuff where each bit has a % chance of flipping.
+		Add new AI to new population.
+	4. Repeat step 2 onwards indefinitely.
