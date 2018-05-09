@@ -34,3 +34,8 @@ class Piece():
         Compares two piece objects.
         """
         return self._id == other._id
+
+    def __hash__(self):
+        components = (self.owner, self._id)
+
+        return hash(components)

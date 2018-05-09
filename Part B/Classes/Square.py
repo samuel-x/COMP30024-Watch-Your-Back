@@ -36,8 +36,11 @@ class Square():
         else:
             return self.state.get_representation()
 
-
     def __eq__(self, other: 'Square'):
-
         return ((self.pos, self.occupant, self.state)
                 == (other.pos, other.occupant, other.state))
+
+    def __hash__(self):
+        components = (self.pos, self.occupant, self.state)
+
+        return hash(components)

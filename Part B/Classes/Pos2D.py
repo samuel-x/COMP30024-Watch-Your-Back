@@ -8,12 +8,14 @@ class Pos2D():
     y: int
 
     def __init__(self, x: int, y: int):
+        assert(type(x) == int)
+        assert(type(y) == int)
+
         self.x = x
         self.y = y
 
-    # TODO: Implement copy (and in Square)
-    # def __deepcopy__(self, memodict={}) -> 'Pos2D':
-    #
+    def get_referee_form(self):
+        return (self.x, self.y)
 
     def __add__(self, other: 'Pos2D'):
         """

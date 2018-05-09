@@ -23,3 +23,13 @@ class PlayerColor(Enum):
 
         if (self == PlayerColor.BLACK):
             return PlayerColor._BLACK_REPRESENTATION.value
+
+    def opposite(self):
+        """
+        Returns the opposite of the calling enum.
+        """
+        if (self == PlayerColor.WHITE):
+            return PlayerColor.BLACK
+
+        elif (self == PlayerColor.BLACK):
+            return PlayerColor.WHITE

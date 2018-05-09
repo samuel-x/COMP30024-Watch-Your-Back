@@ -1,7 +1,5 @@
-from Classes.Board import Board
-from Classes.MCTSAgent import MCTSAgent
+from Classes.Agents.MCTSAgent import MCTSAgent
 from Classes.Node import Node
-from Enums.GamePhase import GamePhase
 
 
 # This will be the file to run the program.

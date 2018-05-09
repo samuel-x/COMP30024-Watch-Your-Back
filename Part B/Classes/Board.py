@@ -15,6 +15,8 @@ class Board():
     A structure that represents the board at a given point.
     """
 
+    MOVING_PHASE_ROUND_START = 24
+
     # TODO Move these into Utilities? Elsewhere?
     _TOP_LEFT: str = "top left"
     _TOP_RIGHT: str = "top right"
@@ -33,7 +35,6 @@ class Board():
     _BLACK_PLACEMENT_ZONE_CORNER_POSITIONS: List[Pos2D] = \
         [Pos2D(0, 2), Pos2D(_NUM_COLS, _NUM_ROWS)]
 
-    _MOVING_PHASE_ROUND_START = 24
 
     _DEATH_ZONE_ROUNDS: List[int] = [128, 192]
 
@@ -51,71 +52,6 @@ class Board():
     # Equals None while the game isn't done. If phase == FINISHED and winner is
     # None, that the game was a tie.
     winner: PlayerColor
-
-    @staticmethod
-    def _init_squares() -> Dict[Pos2D, Square]:
-        """
-        This method initializes all square objects for a complete board as if it
-        were the beginning of the game.
-        """
-        squares: Dict[Pos2D, Square] = {}
-        for col_i in range(Board._NUM_COLS):
-            for row_i in range(Board._NUM_ROWS):
-                pos: Pos2D = Pos2D(col_i, row_i)
-
-                if (pos.x == 0 and (
-                        pos.y == 0 or pos.y == Board._NUM_ROWS - 1) or
-                        pos.x == Board._NUM_COLS - 1 and (
-                                pos.y == 0 or pos.y == Board._NUM_ROWS - 1)):
-                    squares[pos] = Square(pos, None, SquareState.CORNER)
-                else:
-                    squares[pos] = Square(pos, None, SquareState.OPEN)
-
-        return squares
-
-    @staticmethod
-    def create_from_string(round_num: int, game_phase: GamePhase) -> 'Board':
-        """
-        This method takes a string (that is a representation of the board in x-y
-        format) and returns a board object. This also defines the round number
-        and the game phase for the board.
-        """
-        new_board: Board = Board(None, round_num, game_phase)
-        for row_i in range(Board._NUM_ROWS):
-            row_string: List[str] = input().split(" ")
-            for col_i, char in enumerate(row_string):
-                pos: Pos2D = Pos2D(col_i, row_i)
-                if (char == SquareState.CORNER.get_representation()):
-                    new_board.squares[pos] = \
-                        Square(pos, None, SquareState.CORNER)
-                elif (char == SquareState.OPEN.get_representation()):
-                    new_board.squares[pos] = \
-                        Square(pos, None, SquareState.OPEN)
-                elif (char == PlayerColor.WHITE.get_representation()):
-                    new_board.squares[pos] = \
-                        Square(pos, Piece(PlayerColor.WHITE), SquareState.OCCUPIED)
-                elif (char == PlayerColor.BLACK.get_representation()):
-                    new_board.squares[pos] = \
-                        Square(pos, Piece(PlayerColor.BLACK), SquareState.OCCUPIED)
-
-        return new_board
-
-    @staticmethod
-    def _get_opposite_pos(first_pos: Pos2D, second_pos: Pos2D) -> Pos2D:
-        """
-        Given two sequential, adjacent positions, return the third position in
-        that sequence. This method can be seen as getting the position that is
-        opposite of 'first_pos' in regards to 'second_pos'. This method always
-        returns a Pos2D, regardless of if it marks a position off of the board,
-        an eliminated square, etc. In other words, it does no checking to see if
-        the position is valid.
-        """
-        displacement: Pos2D = second_pos - first_pos
-
-        # Ensure that the two given positions are adjacent.
-        assert (abs(displacement.x) + abs(displacement.y)) == 1
-
-        return second_pos + displacement
 
     def __init__(self, squares: Optional[Dict[Pos2D, Square]], round_num: int,
                  phase: GamePhase, winner: PlayerColor = None):
@@ -510,7 +446,7 @@ class Board():
                         bottom_right_corner: Pos2D,
                         offset: Pos2D = Pos2D(0, 0)) -> List[Square]:
         """
-        TODO: Make inclusive or exclusive?
+        TODO: Make inclusive or exclusive? <- Kind of handled by offset, might be ugly though.
         :param top_left_corner:
         :param bottom_right_corner:
         :return:
@@ -531,7 +467,7 @@ class Board():
         game phase should change (and then makes that change).
         """
 
-        if (self.round_num == Board._MOVING_PHASE_ROUND_START):
+        if (self.round_num == Board.MOVING_PHASE_ROUND_START):
             self.phase = GamePhase.MOVEMENT
 
         if (self.phase == GamePhase.PLACEMENT):
@@ -589,3 +525,70 @@ class Board():
         winner: PlayerColor = self.winner
 
         return Board(squares, round_num, phase, winner)
+
+    @staticmethod
+    def _init_squares() -> Dict[Pos2D, Square]:
+        """
+        This method initializes all square objects for a complete board as if it
+        were the beginning of the game.
+        """
+        squares: Dict[Pos2D, Square] = {}
+        for col_i in range(Board._NUM_COLS):
+            for row_i in range(Board._NUM_ROWS):
+                pos: Pos2D = Pos2D(col_i, row_i)
+
+                if (pos.x == 0 and (
+                        pos.y == 0 or pos.y == Board._NUM_ROWS - 1) or
+                        pos.x == Board._NUM_COLS - 1 and (
+                                pos.y == 0 or pos.y == Board._NUM_ROWS - 1)):
+                    squares[pos] = Square(pos, None, SquareState.CORNER)
+                else:
+                    squares[pos] = Square(pos, None, SquareState.OPEN)
+
+        return squares
+
+    @staticmethod
+    def create_from_string(round_num: int, game_phase: GamePhase) -> 'Board':
+        """
+        This method takes a string (that is a representation of the board in x-y
+        format) and returns a board object. This also defines the round number
+        and the game phase for the board.
+        """
+        new_board: Board = Board(None, round_num, game_phase)
+        for row_i in range(Board._NUM_ROWS):
+            row_string: List[str] = input().split(" ")
+            for col_i, char in enumerate(row_string):
+                pos: Pos2D = Pos2D(col_i, row_i)
+                if (char == SquareState.CORNER.get_representation()):
+                    new_board.squares[pos] = \
+                        Square(pos, None, SquareState.CORNER)
+                elif (char == SquareState.OPEN.get_representation()):
+                    new_board.squares[pos] = \
+                        Square(pos, None, SquareState.OPEN)
+                elif (char == PlayerColor.WHITE.get_representation()):
+                    new_board.squares[pos] = \
+                        Square(pos, Piece(PlayerColor.WHITE),
+                               SquareState.OCCUPIED)
+                elif (char == PlayerColor.BLACK.get_representation()):
+                    new_board.squares[pos] = \
+                        Square(pos, Piece(PlayerColor.BLACK),
+                               SquareState.OCCUPIED)
+
+        return new_board
+
+    @staticmethod
+    def _get_opposite_pos(first_pos: Pos2D, second_pos: Pos2D) -> Pos2D:
+        """
+        Given two sequential, adjacent positions, return the third position in
+        that sequence. This method can be seen as getting the position that is
+        opposite of 'first_pos' in regards to 'second_pos'. This method always
+        returns a Pos2D, regardless of if it marks a position off of the board,
+        an eliminated square, etc. In other words, it does no checking to see if
+        the position is valid.
+        """
+        displacement: Pos2D = second_pos - first_pos
+
+        # Ensure that the two given positions are adjacent.
+        assert (abs(displacement.x) + abs(displacement.y)) == 1
+
+        return second_pos + displacement
