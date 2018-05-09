@@ -25,7 +25,7 @@ class Player():
     _color: PlayerColor
     # The depth to go in each iteration of the iterative-deepening search
     # algorithm i.e. number of moves to look ahead.
-    _depth: int = 1
+    _depth: int = 2
 
     def __init__(self, color: str):
         """
@@ -69,21 +69,19 @@ class Player():
                 Player.get_alpha_beta_value(
                     self._board.get_next_board(delta), Player._depth - 1,
                     Player._ALPHA_START_VALUE,
-                    Player._BETA_START_VALUE, self._color)
+                    Player._BETA_START_VALUE, self._color.opposite())
 
-        if (Utils.get_num_max(delta_scores.values()) > 1):
+        best_deltas: List[Delta] = Utils.get_best_deltas(delta_scores, self._color)
+        best_delta: Tuple[Delta, float]
+        if (len(best_deltas) > 1):
             # There are more than one "best" deltas. Pick a random one.
-            best_delta: Tuple[Delta, float] = random.choice(list(delta_scores.items()))
-
-        elif self._color == PlayerColor.WHITE: # Maximizer
-            best_delta: Tuple[Delta, float] = max(delta_scores.items(), key=lambda x: x[1])
-
-        else: # Minimizer
-            best_delta: Tuple[Delta, float] = min(delta_scores.items(), key=lambda x: x[1])
+            best_delta = random.choice(list(best_deltas))
+        else:
+            best_delta = best_deltas[0]
 
         self._board = self._board.get_next_board(best_delta[0])
 
-        print(self._color, "DOES", best_delta[0])
+        print(self._color, "DOES", best_delta[0], "[{}]".format(best_delta[1]))
         return best_delta[0].get_referee_form()
 
     def update(self, action: Tuple[Union[int, Tuple[int]]]):
@@ -170,7 +168,7 @@ class Player():
             for delta in deltas:
                 v = min(v, Player.get_alpha_beta_value(board.get_next_board(delta), depth - 1, alpha, beta, color.opposite()))
                 beta = min(beta, v)
-                if beta <= alpha:
+                if (beta <= alpha):
                     break
             return v
 
@@ -183,8 +181,8 @@ class Player():
         # Calculate the number of white and black pieces. This is a very
         # important heuristic that will help prioritize preserving white's own
         # pieces and killing the enemy's black pieces.
-        num_white_pieces: int = board.get_num_moves(PlayerColor.WHITE)
-        num_black_pieces: int = board.get_num_moves(PlayerColor.BLACK)
+        num_white_pieces: int = len(board.get_player_squares(PlayerColor.WHITE))
+        num_black_pieces: int = len(board.get_player_squares(PlayerColor.BLACK))
 
         # Return the heuristic rating by using the appropriate weights.
         return round(Player._WHITE_WEIGHT * num_white_pieces

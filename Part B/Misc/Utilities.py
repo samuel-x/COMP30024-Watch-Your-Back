@@ -1,6 +1,7 @@
 from math import sqrt, log
-from typing import Union, Iterable
+from typing import List, Dict, Tuple
 
+from Classes.Delta import Delta
 from Enums.PlayerColor import PlayerColor
 
 
@@ -32,16 +33,21 @@ class Utilities():
             return Utilities._SECOND_PLAYER
 
     @staticmethod
-    def get_num_max(nums: Iterable[Union[int, float]]) -> int:
+    def get_best_deltas(delta_scores: Dict[Delta, float], color: PlayerColor) -> List[Tuple[Delta, float]]:
         """
-        Given a list of numbers, returns the number of max values in it e.g.
-        given [4 5 6 2 1 6], returns 2 because there are two 6s (max value).
+        Given a dictionary of deltas to their scores a player color, returns a
+        list of best deltas (and their scores) for that player.
         """
 
-        max_value: Union[int, float] = max(nums)
-        count: int = 0
-        for num in nums:
-            if (num == max_value):
-                count += 1
+        best_value: float
+        if (color == PlayerColor.WHITE): # Maximize
+            best_value = max(delta_scores.values())
+        else: # Minimize
+            best_value = min(delta_scores.values())
 
-        return count
+        best_deltas: List[(Delta, float)] = []
+        for delta, score in delta_scores.items():
+            if (score == best_value):
+                best_deltas.append((delta, score))
+
+        return best_deltas
