@@ -36,7 +36,7 @@ class Board():
         [Pos2D(0, 2), Pos2D(_NUM_COLS, _NUM_ROWS)]
 
 
-    _DEATH_ZONE_ROUNDS: List[int] = [128, 192]
+    _DEATH_ZONE_ROUNDS: List[int] = [151, 215]
 
     # The minimum number of pieces a player can have on the board before they
     # lose.
@@ -318,7 +318,7 @@ class Board():
         # Remove references to adjacent squares if they are going to be killed,
         # as they then cannot kill the moving piece.
         [x_adjacent.remove(self.squares[pos]) for pos in killed_positions if
-         self.squares[pos] in x_adjacent] # TODO: Make this nicer?
+         self.squares[pos] in x_adjacent]
         [y_adjacent.remove(self.squares[pos]) for pos in killed_positions if
          self.squares[pos] in y_adjacent]
 
