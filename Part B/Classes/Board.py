@@ -35,6 +35,8 @@ class Board():
     _BLACK_PLACEMENT_ZONE_CORNER_POSITIONS: List[Pos2D] = \
         [Pos2D(0, 2), Pos2D(_NUM_COLS, _NUM_ROWS)]
 
+    center_zone: List[Pos2D] = [Pos2D(_NUM_COLS % 2, _NUM_ROWS % 2), Pos2D(_NUM_COLS % 2, _NUM_ROWS % 2 + 1),
+                                Pos2D(_NUM_COLS % 2 + 1, _NUM_ROWS % 2), Pos2D(_NUM_COLS % 2 + 1, _NUM_ROWS % 2 + 1)]
 
     _DEATH_ZONE_ROUNDS: List[int] = [151, 215]
 

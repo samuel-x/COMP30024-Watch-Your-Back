@@ -25,7 +25,7 @@ class Player():
     _color: PlayerColor
     # The depth to go in each iteration of the iterative-deepening search
     # algorithm i.e. number of moves to look ahead.
-    _depth: int = 2
+    _depth: int = 1
 
     def __init__(self, color: str):
         """
