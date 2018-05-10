@@ -12,14 +12,14 @@ from Misc.Utilities import Utilities as Utils
 
 class Player():
     # TODO: Consider if we should weigh own player's pieces higher than enemies's.
-    _WHITE_WEIGHT: float = 1.1
-    _BLACK_WEIGHT: float = 1.0
+    _OWN_WEIGHT: float = 1.0
+    _OPPONENT_WEIGHT: float = 1.0
     # Rating-decimal place rounding. Used to prevent floating point imprecision
     # from interfering with move decisions.
     _RATING_NUM_ROUNDING: int = 10
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
-    _SEED: int = 1337
+    _SEED: int = 13
     _DIST_WEIGHT: float = 0.001
 
     # A reference to the current board that the agent is on.
@@ -152,9 +152,9 @@ class Player():
     @staticmethod
     def get_alpha_beta_value(board: Board, depth: int, alpha: float, beta: float, color: PlayerColor) -> float:
         if (depth == 0 or board.phase == GamePhase.FINISHED):
-            return Player.get_heuristic_value(board)
+            return Player.get_heuristic_value(board, color)
 
-        if (color == PlayerColor.WHITE): # Maximizer
+        if (color == Player._color): # Maximizer
             v: float = -999999
             deltas: List[Delta] = board.get_all_valid_moves(color)
             for delta in deltas:
@@ -175,15 +175,15 @@ class Player():
             return v
 
     @staticmethod
-    def get_heuristic_value(board: Board):
+    def get_heuristic_value(board: Board, color: PlayerColor):
         """
         Given a board, calculates and returns its rating based on heuristics.
         This heuristic is identical to the one in part A. "Keep your enemies close".
         """
 
         # Get our squares
-        white_squares: List[Square] = board.get_player_squares(PlayerColor.WHITE)
-        black_squares: List[Square] = board.get_player_squares(PlayerColor.BLACK)
+        own_squares: List[Square] = board.get_player_squares(color)
+        opponent_squares: List[Square] = board.get_player_squares(color.opposite())
 
 
         # If there are any black pieces, calculate the sum of all white pieces'
@@ -192,26 +192,28 @@ class Player():
         # white pieces, when separated from the black pieces, not being able to
         # find their way to the black pieces easily.
         manhattan_dist_sum: int = 0
-        if (len(black_squares) > 0):
-            black_square: Square = black_squares[0]
-            for white_square in white_squares:
-                displacement: Pos2D = (black_square.pos - white_square.pos)
+        if (len(opponent_squares) > 0):
+            opponent_square: Square = opponent_squares[0]
+            for white_square in own_squares:
+                displacement: Pos2D = (opponent_square.pos - white_square.pos)
                 manhattan_dist_sum += abs(displacement.x) + abs(displacement.y)
 
 
         # Calculate the number of white and black pieces. This is a very
         # important heuristic that will help prioritize preserving white's own
         # pieces and killing the enemy's black pieces.
-        num_white_pieces: int = len(white_squares)
-        num_black_pieces: int = len(black_squares)
-
+        num_own_pieces: int = len(own_squares)
+        num_opponent_pieces: int = len(opponent_squares)
+        rounded_heuristic_score: float = 0.0
         # Return the heuristic rating by using the appropriate weights.
         if board.phase != GamePhase.PLACEMENT:
-            return round(Player._WHITE_WEIGHT * num_white_pieces
-                         - Player._BLACK_WEIGHT * num_black_pieces
+            rounded_heuristic_score = round(Player._OWN_WEIGHT * num_own_pieces
+                         - Player._OPPONENT_WEIGHT * num_opponent_pieces
                          - Player._DIST_WEIGHT * manhattan_dist_sum,
                          Player._RATING_NUM_ROUNDING)
         else:
-            return round(Player._WHITE_WEIGHT * num_white_pieces
-                         - Player._BLACK_WEIGHT * num_black_pieces,
+            rounded_heuristic_score = round(Player._OWN_WEIGHT * num_own_pieces
+                         - Player._OPPONENT_WEIGHT * num_opponent_pieces,
                          Player._RATING_NUM_ROUNDING)
+        return rounded_heuristic_score if color == PlayerColor.WHITE \
+                    else -1 * rounded_heuristic_score

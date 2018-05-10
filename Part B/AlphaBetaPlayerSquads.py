@@ -15,14 +15,14 @@ import difflib
 
 class Player():
     # TODO: Consider if we should weigh own player's pieces higher than enemies's.
-    _WHITE_WEIGHT: float = 1.1
-    _BLACK_WEIGHT: float = 1.0
+    _OWN_WEIGHT: float = 1.0
+    _OPPONENT_WEIGHT: float = 1.0
     # Rating-decimal place rounding. Used to prevent floating point imprecision
     # from interfering with move decisions.
     _RATING_NUM_ROUNDING: int = 10
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
-    _SEED: int = 1337
+    _SEED: int = 13
 
     # The size of a squad
     _SQUAD_SIZE: int = 4
@@ -157,9 +157,9 @@ class Player():
     @staticmethod
     def get_alpha_beta_value(board: Board, depth: int, alpha: float, beta: float, color: PlayerColor) -> float:
         if (depth == 0 or board.phase == GamePhase.FINISHED):
-            return Player.get_heuristic_value(board)
+            return Player.get_heuristic_value(board, color)
 
-        if (color == PlayerColor.WHITE): # Maximizer
+        if (color == Player._color): # Maximizer
             v: float = -999999
             deltas: List[Delta] = board.get_all_valid_moves(color)
             for delta in deltas:
@@ -180,31 +180,31 @@ class Player():
             return v
 
     @staticmethod
-    def get_heuristic_value(board: Board):
+    def get_heuristic_value(board: Board, color: PlayerColor):
         """
         Given a board, calculates and returns its rating based on heuristics.
         This attempts to use the difflib library SequenceMatcher in order to
         promote pieces grouping together. Our pieces will be split into _SQUAD_SIZE blocks.
         """
 
-        white_squares: List[Square] = board.get_player_squares(PlayerColor.WHITE)
-        black_squares: List[Square] = board.get_player_squares(PlayerColor.BLACK)
+        own_squares: List[Square] = board.get_player_squares(color)
+        opponent_squares: List[Square] = board.get_player_squares(color.opposite())
 
         # Calculate the number of white and black pieces. This is a very
         # important heuristic that will help prioritize preserving white's own
         # pieces and killing the enemy's black pieces.
-        num_white_pieces: int = len(white_squares)
-        num_black_pieces: int = len(black_squares)
+        num_own_pieces: int = len(own_squares)
+        num_opponent_pieces: int = len(opponent_squares)
 
         squad_coefficient: float = 0.0
 
         # Split up our pieces into "squads" - groups of 4 pieces which will attempt to move together
         squads: Dict[int, List[Square]] = {}
-        for i in range(0, num_white_pieces):
+        for i in range(0, num_own_pieces):
             if i % Player._SQUAD_SIZE == 0:
-                squads[i//Player._SQUAD_SIZE] = [white_squares[i]]
+                squads[i//Player._SQUAD_SIZE] = [own_squares[i]]
             else:
-                squads[i//Player._SQUAD_SIZE].append(white_squares[i])
+                squads[i//Player._SQUAD_SIZE].append(own_squares[i])
 
         # Iterate through all of our squads and get the ideal "N-man block" from our "squad leader" (the first piece
         # in the squad). Then, apply sequence matcher against our current positions and the ideal N-man block.
@@ -218,12 +218,15 @@ class Player():
             # TODO: Also, group squads based on distance rather than random allocation
             squad_coefficient += difflib.SequenceMatcher(None, formation, actual_positions).ratio()/squads_total
 
+        rounded_heuristic_score: float = 0.0
         # Return the heuristic rating by using the appropriate weights.
         if board.phase != GamePhase.PLACEMENT:
-            return round((Player._WHITE_WEIGHT * num_white_pieces
-                         - Player._BLACK_WEIGHT * num_black_pieces) + squad_coefficient,
+            rounded_heuristic_score = round((Player._OWN_WEIGHT * num_own_pieces
+                         - Player._OPPONENT_WEIGHT * num_opponent_pieces) * squad_coefficient,
                          Player._RATING_NUM_ROUNDING)
         else:
-            return round((Player._WHITE_WEIGHT * num_white_pieces
-                         - Player._BLACK_WEIGHT * num_black_pieces),
+            rounded_heuristic_score = round(Player._OWN_WEIGHT * num_own_pieces
+                         - Player._OPPONENT_WEIGHT * num_opponent_pieces,
                          Player._RATING_NUM_ROUNDING)
+        return rounded_heuristic_score if color == PlayerColor.WHITE \
+                    else -rounded_heuristic_score

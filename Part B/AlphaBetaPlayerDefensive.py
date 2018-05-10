@@ -12,14 +12,14 @@ from Misc.Utilities import Utilities as Utils
 
 class Player():
     # TODO: Consider if we should weigh own player's pieces higher than enemies's.
-    _WHITE_WEIGHT: float = 1.1
-    _BLACK_WEIGHT: float = 1.0
+    _OWN_WEIGHT: float = 1.0
+    _OPPONENT_WEIGHT: float = 1.0
     # Rating-decimal place rounding. Used to prevent floating point imprecision
     # from interfering with move decisions.
     _RATING_NUM_ROUNDING: int = 10
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
-    _SEED: int = 1337
+    _SEED: int = 13
     _DIST_WEIGHT: float = 0.001
     _PREPARE_TO_CENTER: int = 32
 
@@ -153,7 +153,7 @@ class Player():
     @staticmethod
     def get_alpha_beta_value(board: Board, depth: int, alpha: float, beta: float, color: PlayerColor) -> float:
         if (depth == 0 or board.phase == GamePhase.FINISHED):
-            return Player.get_heuristic_value(board)
+            return Player.get_heuristic_value(board, color)
 
         if (color == PlayerColor.WHITE): # Maximizer
             v: float = -999999
@@ -176,17 +176,18 @@ class Player():
             return v
 
     @staticmethod
-    def get_heuristic_value(board: Board):
+    def get_heuristic_value(board: Board, color: PlayerColor):
         """
         Given a board, calculates and returns its rating based on heuristics.
         This heuristic focuses on preserving current pieces (by moving them away from enemies)
         until the board begins to become restricted (defined by _PREPARE_TO_CENTER), in which case
-        it'll start moving pieces towards the center of the board
+        it'll start moving pieces towards the center of the board.
+        This heuristic seems to work best only when it initially places pieces near the center of the board.
         """
 
         # Get our squares
-        white_squares: List[Square] = board.get_player_squares(PlayerColor.WHITE)
-        black_squares: List[Square] = board.get_player_squares(PlayerColor.BLACK)
+        own_squares: List[Square] = board.get_player_squares(color)
+        opponent_squares: List[Square] = board.get_player_squares(color.opposite())
 
 
         manhattan_dist_sum: int = 0
@@ -194,37 +195,40 @@ class Player():
         # If the board is beginning to close in, calculate the average manhattan
         # distance to the center of the board and weight moves towards the center as higher.
         if board.round_num > board.death_zone_rounds[0]-Player._PREPARE_TO_CENTER:
-            for white_square in white_squares:
+            for own_square in own_squares:
                 manhattan_dist_center_avg: float = 0
                 count: int = 1
                 for center_square in board.center_zone:
-                    if center_square != white_square.pos:
+                    if center_square != own_square.pos:
                         count += 1
-                        displacement_center: Pos2D = (center_square - white_square.pos)
+                        displacement_center: Pos2D = (center_square - own_square.pos)
                         manhattan_dist_center_avg += abs(displacement_center.x) + abs(displacement_center.y)
                 manhattan_dist_sum += manhattan_dist_center_avg/count
-        else:
+        elif board.phase != GamePhase.PLACEMENT:
             # Otherwise try and avoid enemy pieces
-            if (len(black_squares) > 0):
-                black_square: Square = black_squares[0]
-                for white_square in white_squares:
-                    displacement: Pos2D = (black_square.pos - white_square.pos)
+            if (len(opponent_squares) > 0):
+                opponent_square: Square = opponent_squares[0]
+                for own_square in own_squares:
+                    displacement: Pos2D = (opponent_square.pos - own_square.pos)
                     manhattan_dist_sum -= abs(displacement.x) + abs(displacement.y)
 
 
         # Calculate the number of white and black pieces. This is a very
         # important heuristic that will help prioritize preserving white's own
         # pieces and killing the enemy's black pieces.
-        num_white_pieces: int = len(white_squares)
-        num_black_pieces: int = len(black_squares)
+        num_own_pieces: int = len(own_squares)
+        num_opponent_pieces: int = len(opponent_squares)
 
+        rounded_heuristic_score: float = 0.0
         # Return the heuristic rating by using the appropriate weights.
         if board.phase != GamePhase.PLACEMENT:
-            return round(Player._WHITE_WEIGHT * num_white_pieces
-                         - Player._BLACK_WEIGHT * num_black_pieces
+            rounded_heuristic_score = round(Player._OWN_WEIGHT * num_own_pieces
+                         - Player._OPPONENT_WEIGHT * num_opponent_pieces
                          - Player._DIST_WEIGHT * manhattan_dist_sum,
                          Player._RATING_NUM_ROUNDING)
         else:
-            return round(Player._WHITE_WEIGHT * num_white_pieces
-                         - Player._BLACK_WEIGHT * num_black_pieces,
+            rounded_heuristic_score = round(Player._OWN_WEIGHT * num_own_pieces
+                         - Player._OPPONENT_WEIGHT * num_opponent_pieces,
                          Player._RATING_NUM_ROUNDING)
+        return rounded_heuristic_score if color == PlayerColor.WHITE \
+                    else -rounded_heuristic_score
