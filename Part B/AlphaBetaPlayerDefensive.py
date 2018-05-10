@@ -224,7 +224,7 @@ class Player():
         if board.phase != GamePhase.PLACEMENT:
             rounded_heuristic_score = round(Player._OWN_WEIGHT * num_own_pieces
                          - Player._OPPONENT_WEIGHT * num_opponent_pieces
-                         - Player._DIST_WEIGHT * manhattan_dist_sum,
+                         + Player._DIST_WEIGHT * manhattan_dist_sum,
                          Player._RATING_NUM_ROUNDING)
         else:
             rounded_heuristic_score = round(Player._OWN_WEIGHT * num_own_pieces
