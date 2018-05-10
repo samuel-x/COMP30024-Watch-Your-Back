@@ -10,12 +10,19 @@ from Misc.Utilities import Utilities as Utils
 
 
 class Player():
+    # --- Heuristic Weights ---
     # TODO: Consider if we should weigh own player's pieces higher than enemies's.
-    _WHITE_WEIGHT: float = 1.0
-    _BLACK_WEIGHT: float = 1.0
-    # Rating-decimal place rounding. Used to prevent floating point imprecision
-    # from interfering with move decisions.
+    _OWN_PIECE_WEIGHT: float = 1.0
+    _OPPONENT_PIECE_WEIGHT: float = 1.0
+
+    # Don't want to prioritize mobility over pieces, so it's much smaller.
+    _OWN_MOBILITY_WEIGHT: float = 0.01
+    _OPPONENT_MOBILITY_WEIGHT: float = 0.01
+
+    # Heuristic score decimal place rounding. Used to prevent floating point
+    # imprecision from interfering with move decisions.
     _RATING_NUM_ROUNDING: int = 10
+
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
     _SEED: int = 1337
@@ -61,7 +68,7 @@ class Player():
         below, in the ‘Representing actions’ section.
         """
 
-        deltas: List[Delta] = self._board.get_all_valid_moves(self._color)
+        deltas: List[Delta] = self._board.get_all_possible_deltas(self._color)
         delta_scores: Dict[Delta, float] = {}
 
         for delta in deltas:
@@ -125,7 +132,7 @@ class Player():
             # Placement
             assert(self._board.phase == GamePhase.PLACEMENT)
 
-            deltas = self._board.get_valid_placements(self._color.opposite())
+            deltas = self._board.get_possible_placements(self._color.opposite())
 
             for delta in deltas:
                 if delta.move_target.pos == positions[0]:
@@ -150,11 +157,11 @@ class Player():
     @staticmethod
     def get_alpha_beta_value(board: Board, depth: int, alpha: float, beta: float, color: PlayerColor) -> float:
         if (depth == 0 or board.phase == GamePhase.FINISHED):
-            return Player.get_heuristic_value(board)
+            return Player.get_heuristic_value(board, color)
 
         if (color == PlayerColor.WHITE): # Maximizer
             v: float = -999999
-            deltas: List[Delta] = board.get_all_valid_moves(color)
+            deltas: List[Delta] = board.get_all_possible_deltas(color)
             for delta in deltas:
                 v = max(v, Player.get_alpha_beta_value(board.get_next_board(delta), depth - 1, alpha, beta, color.opposite()))
                 alpha = max(alpha, v)
@@ -164,7 +171,7 @@ class Player():
 
         else: # Minimizer
             v = 999999
-            deltas: List[Delta] = board.get_all_valid_moves(color)
+            deltas: List[Delta] = board.get_all_possible_deltas(color)
             for delta in deltas:
                 v = min(v, Player.get_alpha_beta_value(board.get_next_board(delta), depth - 1, alpha, beta, color.opposite()))
                 beta = min(beta, v)
@@ -173,7 +180,7 @@ class Player():
             return v
 
     @staticmethod
-    def get_heuristic_value(board: Board):
+    def get_heuristic_value(board: Board, player: PlayerColor):
         """
         Given a board, calculates and returns its rating based on heuristics.
         """
@@ -181,10 +188,23 @@ class Player():
         # Calculate the number of white and black pieces. This is a very
         # important heuristic that will help prioritize preserving white's own
         # pieces and killing the enemy's black pieces.
-        num_white_pieces: int = len(board.get_player_squares(PlayerColor.WHITE))
-        num_black_pieces: int = len(board.get_player_squares(PlayerColor.BLACK))
+        num_own_pieces: int = len(board.get_player_squares(player))
+        num_opponent_pieces: int = len(board.get_player_squares(player.opposite()))
 
-        # Return the heuristic rating by using the appropriate weights.
-        return round(Player._WHITE_WEIGHT * num_white_pieces
-                     - Player._BLACK_WEIGHT * num_black_pieces,
-                     Player._RATING_NUM_ROUNDING)
+        # Calculate the mobility for both white and black i.e. the number of
+        # possible moves they can make.
+        own_mobility: int = board.get_num_moves(player)
+        opponent_mobility: int = board.get_num_moves(player.opposite())
+
+        # Calculate the heuristic score/rating.
+        rounded_heuristic_score: float = round(
+            Player._OWN_PIECE_WEIGHT * num_own_pieces
+            - Player._OPPONENT_PIECE_WEIGHT * num_opponent_pieces
+            + Player._OWN_MOBILITY_WEIGHT * own_mobility
+            - Player._OPPONENT_MOBILITY_WEIGHT * opponent_mobility,
+            Player._RATING_NUM_ROUNDING)
+
+        # Return the score as is or negate, depending on the player.
+        # For white, return as is. For black, negate.
+        return rounded_heuristic_score if player == PlayerColor.WHITE \
+            else -rounded_heuristic_score

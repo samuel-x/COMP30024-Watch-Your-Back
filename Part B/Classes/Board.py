@@ -67,8 +67,7 @@ class Board():
     def get_num_moves(self, player: PlayerColor) -> int:
         """
         This method takes a player and returns the number of possible moves that
-        they can take. This is required for Part A question 1 as defined in the
-        spec.
+        they can take.
         """
         player_squares: List[Square] = self.get_player_squares(player)
         count: int = 0
@@ -89,7 +88,7 @@ class Board():
 
         return count
 
-    def get_valid_placements(self, player: PlayerColor) -> List[Delta]:
+    def get_possible_placements(self, player: PlayerColor) -> List[Delta]:
         """
         TODO
         :return:
@@ -199,13 +198,13 @@ class Board():
 
         return possible_deltas
 
-    def get_all_valid_moves(self, player: PlayerColor) -> List[Delta]:
+    def get_all_possible_deltas(self, player: PlayerColor) -> List[Delta]:
         """
         Returns a list of all possible moves for a given player.
         """
 
         if (self.phase == GamePhase.PLACEMENT):
-            return self.get_valid_placements(player)
+            return self.get_possible_placements(player)
 
         if (self.phase == GamePhase.MOVEMENT):
             valid_moves: List[Delta] = []

@@ -46,7 +46,7 @@ class MCTSAgent():
         # A list of all deltas which have already been explored at least once. Therefore, they are nodes.
         children: List[Node] = node.children
         # A list of all valid deltas from the given board.
-        deltas: List[Delta] = self._board.get_all_valid_moves(Utils.get_player(self._board.round_num))
+        deltas: List[Delta] = self._board.get_all_possible_deltas(Utils.get_player(self._board.round_num))
 
         if (len(children) > 0):
             for child in children:
