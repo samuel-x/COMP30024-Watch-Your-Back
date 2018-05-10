@@ -29,7 +29,7 @@ class AlphaBetaAgent():
         is_maximizer: bool = False
         while (self._board.phase != GamePhase.FINISHED):
 
-            deltas: List[Delta] = self._board.get_all_valid_moves(Utils.get_player(self._board.round_num))
+            deltas: List[Delta] = self._board.get_all_possible_deltas(Utils.get_player(self._board.round_num))
             delta_scores: List[Tuple[Delta, float]] = []
             for delta in deltas:
                 delta_scores.append((delta, AlphaBetaAgent.alphabeta(self._board.get_next_board(delta), Node(self._node, delta), 2, -9999, 9999, is_maximizer)))
@@ -55,7 +55,7 @@ class AlphaBetaAgent():
 
         if (is_maximizer):
             v: float = -999999
-            deltas: List[Delta] = board.get_all_valid_moves(Utils.get_player(board.round_num))
+            deltas: List[Delta] = board.get_all_possible_deltas(Utils.get_player(board.round_num))
             for delta in deltas:
                 child_node: Node = Node(node, delta)
                 v = max(v, AlphaBetaAgent.alphabeta(board.get_next_board(delta), child_node, depth - 1, alpha, beta, False))
@@ -65,7 +65,7 @@ class AlphaBetaAgent():
             return v
         else:
             v = 999999
-            deltas: List[Delta] = board.get_all_valid_moves(Utils.get_player(board.round_num))
+            deltas: List[Delta] = board.get_all_possible_deltas(Utils.get_player(board.round_num))
             for delta in deltas:
                 child_node: Node = Node(node, delta)
                 v = min(v, AlphaBetaAgent.alphabeta(board.get_next_board(delta), child_node, depth - 1, alpha, beta, True))

@@ -60,7 +60,7 @@ class IDSAgent:
         # While the game is not finished, perform the algorithm.
         while (self._board.phase != GamePhase.FINISHED):
             # Evaluate all of the possible moves from this board.
-            deltas: List[Delta] = self._board.get_all_valid_moves(PlayerColor.WHITE)
+            deltas: List[Delta] = self._board.get_all_possible_deltas(PlayerColor.WHITE)
             # Shuffling the calculated deltas can assist in avoiding endless
             # loops.
             random.shuffle(deltas)
@@ -138,7 +138,7 @@ class IDSAgent:
         'get_board_ratings'.
         """
         # Evaluate all of the possible moves from this board.
-        deltas: List[Delta] = board.get_all_valid_moves(player)
+        deltas: List[Delta] = board.get_all_possible_deltas(player)
         # Shuffling the calculated deltas can assist in avoiding endless loops,
         # particularly if board states are being repeated.
         random.shuffle(deltas)
