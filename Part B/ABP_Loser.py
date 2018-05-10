@@ -13,8 +13,8 @@ from Misc.Utilities import Utilities as Utils
 class Player():
     # --- Heuristic Weights ---
     # TODO: Consider if we should weigh own player's pieces higher than enemies's.
-    _OWN_PIECE_WEIGHT: float = 1.0
-    _OPPONENT_PIECE_WEIGHT: float = -1.0
+    _OWN_PIECE_WEIGHT: float = 1
+    _OPPONENT_PIECE_WEIGHT: float = -1
 
     # Don't want to prioritize mobility over pieces, so it's much smaller.
     _OWN_MOBILITY_WEIGHT: float = 0.01
@@ -30,14 +30,14 @@ class Player():
 
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
-    _SEED: int = 1337
+    _SEED: int = 22
 
     # A reference to the current board that the agent is on.
     _board: Board
     _color: PlayerColor
     # The depth to go in each iteration of the iterative-deepening search
     # algorithm i.e. number of moves to look ahead.
-    _depth: int = 2
+    _depth: int = 1
 
     def __init__(self, color: str):
         """

@@ -114,7 +114,7 @@ class Board():
                       self._get_killed_positions(Piece(player), square.pos), [],
                       []) for square in valid_squares]
 
-    def get_possible_deltas(self, pos: Pos2D) -> List[Delta]:
+    def get_possible_moves(self, pos: Pos2D) -> List[Delta]:
         """
         Given a position on the board, returns a list of possible moves (or
         'deltas') from that position.
@@ -178,11 +178,12 @@ class Board():
 
                         # First statement is edge case handling. If the delta
                         # involves moving away from the opposite square, it
-                        # cannot killed adj_square.
+                        # cannot kill adj_square.
                         if (opposite_square.pos != move_origin.pos
                                 and opposite_square.state == SquareState.OCCUPIED
                                 and adj_square.occupant.owner
-                                != opposite_square.occupant.owner):
+                                != opposite_square.occupant.owner
+                                and opposite_square not in potential_corner_kills):
                             potential_corner_kills.append(adj_square)
 
             potential_kills: List[Pos2D] = \
@@ -213,13 +214,29 @@ class Board():
             player_squares: List[Square] = self._get_player_squares(player)
             # Iterate over each of these squares and add their valid moves to
             # 'valid_moves'.
-            [valid_moves.extend(self.get_possible_deltas(square.pos)) for square
+            [valid_moves.extend(self.get_possible_moves(square.pos)) for square
              in player_squares]
 
             return valid_moves
 
         assert (self.phase == GamePhase.FINISHED)
-        raise ValueError("Game is finished. Neither player can move.")
+
+        print("BOARD:")
+        print("Round num:", self.round_num)
+        print(self)
+
+        # TODO:
+        # There are cases where this happens with the referee, at least
+        # in GeneticAlgorithmDriver. Figure out why.
+
+        # We shouldn't get this far. Operation from now on is unpredictable.
+        print("WARNING: I think the game is finished but "
+              "get_all_possible_deltas was called anyway! I'll try my best to "
+              "continue.")
+
+        # Assume we're still in movement phase. Call recursively again.
+        self.phase = GamePhase.MOVEMENT
+        return self.get_all_possible_deltas(player)
 
     def get_next_board(self, delta: Delta) -> 'Board':
         """
@@ -421,14 +438,14 @@ class Board():
             self.squares[original_corners[Board._TOP_LEFT].pos
                          + Pos2D(1, 1)])
         new_corners.append(
-            self.squares[original_corners[Board._TOP_RIGHT].pos
-                         + Pos2D(-1, 1)])
-        new_corners.append(
             self.squares[original_corners[Board._BOTTOM_LEFT].pos
                          + Pos2D(1, -1)])
         new_corners.append(
             self.squares[original_corners[Board._BOTTOM_RIGHT].pos
                          + Pos2D(-1, -1)])
+        new_corners.append(
+            self.squares[original_corners[Board._TOP_RIGHT].pos
+                         + Pos2D(-1, 1)])
 
 
 

@@ -4,20 +4,19 @@ Authors: Matt Farrugia and Shreyash Patodia
 version: v1.2
 """
 
+import argparse
 import gc
+import importlib
 import random
 import time
-import argparse
-import importlib
-from typing import List, Tuple, Dict
-#_thread.start_new_thread(fearAndGreedReminder, (terpbot,config))
-import threading
+from multiprocessing import Pool
+from multiprocessing.pool import ApplyResult
+from typing import List, Dict
 
-import math
-from numpy.random import choice
+import multiprocessing
 from numpy import mean
+from numpy.random import choice
 
-from Enums.PlayerColor import PlayerColor
 from GeneticPlayer import Player
 
 VERSION_INFO = """Referee version 1.2 (released May 07 2018)
@@ -27,81 +26,127 @@ Run `python referee.py -h` for help and additional usage information
 """
 
 def main():
-    SEED: int = 1337
+    SEED: int = 33
     random.seed(SEED)
+    time_out: float = 20.0
+    MAX_TIMEOUT: float = 60.0
+    ARTIFICIAL_HEURISTICS = [1, -1, 0.01, -0.01, -0.001, 0.001, -0.005, 0.005]
 
-    N: int = 3 # Population size.
-    NUM_HEURISTIC_VALUES: int = 4 # Number of heuristic values.
-    NUM_GAMES_PER_GENERATION: int = 10
+    N: int = 20 # Population size.
+    NUM_HEURISTIC_VALUES: int = 8 # Number of heuristic values.
+    NUM_GAMES_PER_GENERATION: int = 400
     NUM_GAMES_PER_PLAYER_PER_GENERATION = round_even(NUM_GAMES_PER_GENERATION / (N * (N - 1) / 2))
     NUM_PARENTS: int = 3
-    MUTATION_RATE: float = 0.02
+    MUTATION_RATE: float = 0.05
     print("NUM_GAMES_PER_PLAYER_PER_GENERATION:", NUM_GAMES_PER_PLAYER_PER_GENERATION)
-    population: List[PlayerWrapper] = []
+    population: Dict[int, PlayerWrapper] = {}
 
     # Generate initial population.
     heuristic_weights: List[float]
-    for i in range(N):
+    new_wrapper: PlayerWrapper
+    for i in range(N-1):
         heuristic_weights = [random.uniform(-1, 1) for i in range(NUM_HEURISTIC_VALUES)]
-        population.append(PlayerWrapper(heuristic_weights))
+        new_wrapper = PlayerWrapper(heuristic_weights)
+        population[new_wrapper.id] = new_wrapper
 
+    # Insert custom player.
+    new_wrapper = PlayerWrapper(ARTIFICIAL_HEURISTICS)
+    population[new_wrapper.id] = new_wrapper
+
+    pool: Pool = Pool(11)
+    processes: List[ApplyResult]
     generation_counter = 1
     while(True):
         print("\nGeneration:", generation_counter)
-        print("Parameters:", heuristic_weights)
-        # Launch threads for each game to be played on.
-        games_list: List[Tuple[PlayerWrapper, PlayerWrapper, int, List[str]]] = []
-        for idx, player1 in enumerate(population):
-            for idx, player2 in enumerate(population[idx + 1:]):
+        # Generate the processes for each game to be played on.
+        player_wrappers: List[PlayerWrapper] = list(population.values())
+        processes = []
+        for idx, player1 in enumerate(player_wrappers):
+            for player2 in player_wrappers[idx + 1:]:
                 for i in range(NUM_GAMES_PER_PLAYER_PER_GENERATION):
-                    answer = ["Blank"]
-                    player1_player: Player = player1.make_player("white" if i % 2 == 0 else "black")
-                    player2_player: Player = player2.make_player("black" if i % 2 == 0 else "white")
-                    thread: threading.Thread
+                    process: ApplyResult
                     if (i % 2 == 0):
-                         thread = threading.Thread(target=simulate_game,
-                                             args=(player1_player, player2_player, answer))
+                        print("Playing:", player1.id, player2.id, "player1 as white")
+                        process = pool.apply_async(simulate_game, (player1, player2, i, len(processes)))
                     else:
-                        thread = threading.Thread(target=simulate_game,
-                                                  args=(player2_player,
-                                                        player1_player, answer))
-                    thread.start()
-                    games_list.append((player1, player2, i, answer, thread))
+                        print("Playing:", player1.id, player2.id, "player1 as black")
+                        process = pool.apply_async(simulate_game, (player2, player1, i, len(processes)))
+                    processes.append(process)
+
+        print("Num games to play:", len(processes))
+
+        # Get results.
+        results = []
+        timed_out: bool = False
+        counter: int = 0
+        while (counter < len(processes)):
+            try:
+                print("Getting {} at {:2f} seconds timeout...".format(counter, time_out))
+                results.append(processes[counter].get(time_out))
+                print("Got {}.".format(counter))
+                time_out *= 0.98 # Decrease timeout by 2%.
+                timed_out = False
+            except multiprocessing.TimeoutError:
+                if (timed_out):
+                    print(counter, "timed out x2 - abandoning game.")
+                    results.append(("SKIP", "SKIP", "SKIP", "SKIP", "SKIP"))
+                    timed_out = False
+                else:
+                    time_out = min(time_out * 2, MAX_TIMEOUT)  # Double timeout and try again.
+                    print(counter, "timed out x1 - retrying simulation.")
+                    timed_out = True
+                    counter -= 1
+
+            counter += 1
+
+        assert (len(results) == len(processes))
 
         # Evaluate results as the threads complete.
-        print("games_list:", len(games_list))
-        for (player1, player2, i, answer, thread) in games_list:
-            print("Joining thread...")
-            thread.join()
-            assert len(answer) == 1
-            print("Answer:", answer[0])
-            if (answer[0] == "W" and i % 2 == 0):
-                player1.wins += 1
-                player2.losses += 1
-            elif(answer[0] == "B" and i % 2 == 0):
-                player2.wins += 1
-                player1.losses += 1
-            elif(answer[0] == "W" and i % 2 == 1):
-                player2.wins += 1
-                player1.losses += 1
-            elif(answer[0] == "B" and i % 2 == 1):
-                player1.wins += 1
-                player2.losses += 1
+        for (player1_id, player2_id, i, answer, _) in results:
+            if (answer == "SKIP"):
+                continue
+
+            if (answer == "W" and i % 2 == 0):
+                population[player1_id].wins += 1
+                population[player2_id].losses += 1
+            elif(answer == "B" and i % 2 == 0):
+                population[player2_id].wins += 1
+                population[player1_id].losses += 1
+            elif(answer == "W" and i % 2 == 1):
+                population[player2_id].wins += 1
+                population[player1_id].losses += 1
+            elif(answer == "B" and i % 2 == 1):
+                population[player1_id].wins += 1
+                population[player2_id].losses += 1
+            elif(answer == "draw"):
+                population[player1_id].wins += 0.5
+                population[player1_id].losses += 0.5
+                population[player2_id].wins += 0.5
+                population[player2_id].losses += 0.5
 
         # Calculate win rates i.e. fitness scores.
-        for player in population:
-            player.win_rate = player.wins / (player.losses + 1)
+        for player in player_wrappers:
+            player.win_rate = player.wins / (player.wins + player.losses)
+
+        # Print fitness scores and parameters.
+        print("Rank:")
+        sorted_players: List[PlayerWrapper] = sorted(player_wrappers, key=lambda x: x.win_rate, reverse=True)
+        for player in sorted_players:
+            print("ID: {} | WR: {:4f} | Param: {}".format(player.id, player.win_rate, ["{:8f}".format(param) for param in player.parameters]))
 
         # Calculate probability of each class being a parent (derived from win rate).
-        sum_win_rates: float = sum(player.win_rate for player in population)
+        sum_win_rates: float = sum(player.win_rate for player in sorted_players)
         parent_probabilities: List[float] = []
-        for player in population:
-            parent_probabilities.append(player.win_rate / sum_win_rates)
+        parent_probability: float
+        for player in sorted_players:
+            parent_probability = player.win_rate / sum_win_rates
+            print("Parent probability: {:8f}".format(parent_probability))
+            parent_probabilities.append(parent_probability)
 
         # Reproduction/Selection
-        new_population: List[PlayerWrapper] = []
+        new_population: Dict[int, PlayerWrapper] = {}
         for i in range(N):
-            parents: List[PlayerWrapper] = choice(population, NUM_PARENTS, p=parent_probabilities)
+            parents: List[PlayerWrapper] = choice(sorted_players, NUM_PARENTS, p=parent_probabilities)
             child_parameters: List[float] = []
             for j in range(NUM_HEURISTIC_VALUES):
                 parent_values: List[float] = [parent.parameters[j] for parent in parents]
@@ -111,7 +156,14 @@ def main():
                 child_value *= random.uniform(1 - MUTATION_RATE, 1 + MUTATION_RATE)
                 child_parameters.append(child_value)
 
-            new_population.append(PlayerWrapper(child_parameters))
+            child_wrapper: PlayerWrapper = PlayerWrapper(child_parameters)
+            new_population[child_wrapper.id] = child_wrapper
+
+        # Insert custom wrapper.
+        if (generation_counter % 5 == 0):
+            del(new_population[child_wrapper.id])
+            child_wrapper: PlayerWrapper = PlayerWrapper(ARTIFICIAL_HEURISTICS)
+            new_population[child_wrapper.id] = child_wrapper
 
         population = new_population
         generation_counter += 1
@@ -121,21 +173,21 @@ class PlayerWrapper():
 
     parameters: List[float]
     player: Player
-    wins: int
-    losses: int
+    wins: float
+    losses: float
     win_rate: float
     id: int
 
     def __init__(self, parameters: List[float]):
         self.parameters = parameters
         self.id = PlayerWrapper._id
-        self.wins = 0
-        self.losses = 0
+        self.wins = 0.0
+        self.losses = 0.0
         self.win_rate = 0.0
         PlayerWrapper._id += 1
 
     def make_player(self, color):
-        return Player(color, *self.parameters)
+        return Player(color, self.parameters)
 
     def __eq__(self, other):
         return self.id == other.id
@@ -143,23 +195,27 @@ class PlayerWrapper():
     def __hash__(self):
         return hash((self.id, "PlayerWrapper"))
 
-def simulate_game(player1: Player, player2: Player, return_value: List[str]):
+def simulate_game(whiteWrapper: PlayerWrapper, blackWrapper: PlayerWrapper, i: int, game_count: int):
     """Coordinate a game of Watch Your Back! between two Player classes."""
-    print("Simulating game...")
+    print("Simulating game #{}...".format(game_count))
 
     # load command-line options
     # options = _Options()
 
     # initialise the game and players
     game = _Game()
-    white = _Player(player1, TIME_LIMIT_DEFAULT, SPACE_LIMIT_DEFAULT)
-    black = _Player(player2, TIME_LIMIT_DEFAULT, SPACE_LIMIT_DEFAULT)
-
+    white = _Player(whiteWrapper.make_player("white"), TIME_LIMIT_DEFAULT, SPACE_LIMIT_DEFAULT)
+    black = _Player(blackWrapper.make_player("black"), TIME_LIMIT_DEFAULT, SPACE_LIMIT_DEFAULT)
     # now, play the game!
     player, opponent = white, black  # white has first move
 
     while game.playing():
         turns = game.turns
+
+        if (turns > 200):
+            game.winner = "draw"
+            break
+
         try:
             action = player.action(turns)
         except _ResourceLimitException as e:
@@ -187,7 +243,12 @@ def simulate_game(player1: Player, player2: Player, return_value: List[str]):
         # other player's turn!
         player, opponent = opponent, player
 
-    return_value[0] = game.winner # ("W", "B", or "draw")
+    print("Game #{} ({} vs {}) finished. Winner: {}".format(game_count, whiteWrapper.id, blackWrapper.id, game.winner))
+    print(game)
+    if (i % 2 == 0):
+        return (whiteWrapper.id, blackWrapper.id, i, game.winner, game_count)  # ("W", "B", or "draw")
+    else:
+        return (blackWrapper.id, whiteWrapper.id, i, game.winner, game_count)
 
 def round_even(x):
     init_result: int = int(x)
@@ -616,6 +677,8 @@ class _Game:
         has run out of pieces, decide the winner and transition to the 
         'completed' state
         """
+        # print(self)
+
         n_whites = self.pieces['W']
         n_blacks = self.pieces['B']
         if n_whites >= 2 and n_blacks >= 2:

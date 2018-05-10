@@ -107,8 +107,16 @@ TODO:
 		- Once out of time, choose move with best alpha-beta value at that moment.
 			- Or just decide "I don't have much time this round, I'll just 1 depth" or visa versa i.e. "I have lots of time this round, I'll use 2 depth"
 				- Base time thresholds off of observed max-expected time to make move e.g. "Depth 1 decisions take max 0.2 seconds" or "Depth 2 decisions take max 5 seconds"
+		- ^ ALTERNATIVE
+			- Do depth = 1. In case of multiple max deltas, do depth = 2 for each and then pick best.
 
 	?. Optimization
 		- Anything we can do to speed up the existing framework?
 		- Copying the board when using board.get_next_board() takes a lot of time.
 			- Unfortunately we're using Python so I don't know how much control we have over data types, but maybe it's possible to use smaller data types e.g. Pos2D only needs to contain values of 0 - 7.
+
+TODO 2:
+	1. Add more heuristics
+		- During placement phase: do not place next to enemies.
+			- VERY IMPORTANT FOR DEPTH = 1
+			- Otherwise, black places piece next to white and white immediately kills it. Repeat for whole placement phase.

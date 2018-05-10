@@ -4,6 +4,7 @@ from typing import List, Tuple, Dict, Union
 from Classes.Board import Board
 from Classes.Delta import Delta
 from Classes.Pos2D import Pos2D
+from Classes.Square import Square
 from Enums.GamePhase import GamePhase
 from Enums.PlayerColor import PlayerColor
 from Misc.Utilities import Utilities as Utils
@@ -12,12 +13,19 @@ from Misc.Utilities import Utilities as Utils
 class Player():
     # --- Heuristic Weights ---
     # TODO: Consider if we should weigh own player's pieces higher than enemies's.
-    _OWN_PIECE_WEIGHT: float = 1.0
-    _OPPONENT_PIECE_WEIGHT: float = 1.0
+    _OWN_PIECE_WEIGHT: float
+    _OPPONENT_PIECE_WEIGHT: float
 
     # Don't want to prioritize mobility over pieces, so it's much smaller.
-    _OWN_MOBILITY_WEIGHT: float = 0.01
-    _OPPONENT_MOBILITY_WEIGHT: float = 0.01
+    _OWN_MOBILITY_WEIGHT: float
+    _OPPONENT_MOBILITY_WEIGHT: float
+
+    # TODO: How to balance cohesiveness and mobility? They're opposing, in a way.
+    _OWN_DIVIDED_WEIGHT: float  # Bad to be divided. Want to be cohesive!
+    _OPPONENT_DIVIDED_WEIGHT: float  # Good for opponent to be divided.
+
+    _OWN_NON_CENTRALITY_WEIGHT: float
+    _OPPONENT_NON_CENTRALITY_WEIGHT: float
 
     # Heuristic score decimal place rounding. Used to prevent floating point
     # imprecision from interfering with move decisions.
@@ -34,10 +42,7 @@ class Player():
     # algorithm i.e. number of moves to look ahead.
     _depth: int = 1
 
-    def __init__(self, color: str, own_piece_weight: float,
-                 opponent_piece_weight: float,
-                 own_mobility_weight: float,
-                 opponent_mobility_weight: float):
+    def __init__(self, color: str, parameters: List[float]):
         """
         TODO
         This method is called by the referee once at the beginning of the game to initialise
@@ -49,6 +54,7 @@ class Player():
         you are the White player for this game) or the string 'black' (if you are the Black
         player for this game).
         """
+        self.parameters = parameters
 
         self._board = Board(None, 0, GamePhase.PLACEMENT)
         if (color.lower() == "white"):
@@ -56,14 +62,9 @@ class Player():
         else:
             self._color = PlayerColor.BLACK
 
-        Player._OWN_PIECE_WEIGHT = own_piece_weight
-        Player._OWN_MOBILITY_WEIGHT = opponent_piece_weight
-        Player._OPPONENT_PIECE_WEIGHT = own_mobility_weight
-        Player._OPPONENT_MOBILITY_WEIGHT = opponent_mobility_weight
-
         random.seed(Player._SEED)
 
-    def action(self, turns) -> str:
+    def action(self, turns) -> Union[str, None]:
         """
         This method is called by the referee to request an action by your player.
         The input parameter turns is an integer representing the number of turns that have
@@ -77,6 +78,9 @@ class Player():
         """
 
         deltas: List[Delta] = self._board.get_all_possible_deltas(self._color)
+        if (len(deltas) == 0):
+            return None
+
         delta_scores: Dict[Delta, float] = {}
 
         for delta in deltas:
@@ -84,7 +88,7 @@ class Player():
                 Player.get_alpha_beta_value(
                     self._board.get_next_board(delta), Player._depth - 1,
                     Player._ALPHA_START_VALUE,
-                    Player._BETA_START_VALUE, self._color.opposite())
+                    Player._BETA_START_VALUE, self._color.opposite(), self.parameters)
 
         best_deltas: List[Delta] = Utils.get_best_deltas(delta_scores, self._color)
         best_delta: Tuple[Delta, float]
@@ -95,6 +99,10 @@ class Player():
             best_delta = best_deltas[0]
 
         self._board = self._board.get_next_board(best_delta[0])
+
+        # if self._color == PlayerColor.WHITE and self.parameters == [1, -1, 0.01, -0.01]:
+        #     print([(str(delta), score) for delta, score in delta_scores.items()])
+        #     print("{} {} DOES {} [{}]".format(self.parameters, self._color, best_delta[0], best_delta[1]))
 
         return best_delta[0].get_referee_form()
 
@@ -123,6 +131,7 @@ class Player():
             # Opponent forfeited turn.
             self._board.round_num += 1
             self._board._update_game_phase()
+            return
 
         positions: List[Pos2D]
 
@@ -148,7 +157,7 @@ class Player():
             # Movement.
             assert(self._board.phase == GamePhase.MOVEMENT)
 
-            deltas = self._board.get_possible_deltas(positions[0])
+            deltas = self._board.get_possible_moves(positions[0])
 
             for delta in deltas:
                 if delta.move_target.pos == positions[1]:
@@ -160,15 +169,15 @@ class Player():
         self._board = self._board.get_next_board(opponent_delta)
 
     @staticmethod
-    def get_alpha_beta_value(board: Board, depth: int, alpha: float, beta: float, color: PlayerColor) -> float:
+    def get_alpha_beta_value(board: Board, depth: int, alpha: float, beta: float, color: PlayerColor, parameters: List[float]) -> float:
         if (depth == 0 or board.phase == GamePhase.FINISHED):
-            return Player.get_heuristic_value(board, color)
+            return Player.get_heuristic_value(board, color, parameters)
 
         if (color == PlayerColor.WHITE): # Maximizer
             v: float = -999999
             deltas: List[Delta] = board.get_all_possible_deltas(color)
             for delta in deltas:
-                v = max(v, Player.get_alpha_beta_value(board.get_next_board(delta), depth - 1, alpha, beta, color.opposite()))
+                v = max(v, Player.get_alpha_beta_value(board.get_next_board(delta), depth - 1, alpha, beta, color.opposite(), parameters))
                 alpha = max(alpha, v)
                 if (beta <= alpha):
                     break
@@ -178,35 +187,84 @@ class Player():
             v = 999999
             deltas: List[Delta] = board.get_all_possible_deltas(color)
             for delta in deltas:
-                v = min(v, Player.get_alpha_beta_value(board.get_next_board(delta), depth - 1, alpha, beta, color.opposite()))
+                v = min(v, Player.get_alpha_beta_value(board.get_next_board(delta), depth - 1, alpha, beta, color.opposite(), parameters))
                 beta = min(beta, v)
                 if (beta <= alpha):
                     break
             return v
 
     @staticmethod
-    def get_heuristic_value(board: Board, player: PlayerColor):
+    def get_heuristic_value(board: Board, player: PlayerColor, parameters: List[float]):
         """
         Given a board, calculates and returns its rating based on heuristics.
         """
 
+        player_squares: List[Square] = board.get_player_squares(player)
+        opponent_squares: List[Square] = board.get_player_squares(player.opposite())
+
+        # -- Num pieces --
         # Calculate the number of white and black pieces. This is a very
         # important heuristic that will help prioritize preserving white's own
         # pieces and killing the enemy's black pieces.
-        num_own_pieces: int = len(board.get_player_squares(player))
-        num_opponent_pieces: int = len(board.get_player_squares(player.opposite()))
+        num_own_pieces: int = len(player_squares)
+        num_opponent_pieces: int = len(opponent_squares)
 
+        # -- Mobility --
         # Calculate the mobility for both white and black i.e. the number of
         # possible moves they can make.
         own_mobility: int = board.get_num_moves(player)
         opponent_mobility: int = board.get_num_moves(player.opposite())
 
+        # -- Cohesiveness --
+        own_total_distance: int = 0
+        opponent_total_distance: int = 0
+
+        displacement: Pos2D
+        for idx, square in enumerate(player_squares):
+            for square2 in player_squares[idx + 1:]:
+                displacement = square.pos - square2.pos
+                own_total_distance += abs(displacement.x) + abs(displacement.y)
+
+        for idx, square in enumerate(opponent_squares):
+            for square2 in opponent_squares[idx + 1:]:
+                displacement = square.pos - square2.pos
+                opponent_total_distance += abs(displacement.x) + abs(
+                    displacement.y)
+
+        own_avg_allied_distance: float = own_total_distance / (num_own_pieces + 1)
+        opponent_avg_allied_distance: float = opponent_total_distance / (
+                    num_opponent_pieces + 1)
+
+        # -- Centrality --
+        own_total_distance: int = 0
+        opponent_total_distance: int = 0
+
+        x_displacement: float
+        y_displacement: float
+        for square in player_squares:
+            x_displacement = 3.5 - square.pos.x
+            y_displacement = 3.5 - square.pos.y
+            own_total_distance += abs(x_displacement) + abs(y_displacement)
+
+        for square in opponent_squares:
+            x_displacement = 3.5 - square.pos.x
+            y_displacement = 3.5 - square.pos.y
+            opponent_total_distance += abs(x_displacement) + abs(y_displacement)
+
+        own_avg_center_distance: float = own_total_distance / (num_own_pieces + 1)
+        opponent_avg_center_distance: float = opponent_total_distance / (
+                    num_opponent_pieces + 1)
+
         # Calculate the heuristic score/rating.
         rounded_heuristic_score: float = round(
-            Player._OWN_PIECE_WEIGHT * num_own_pieces
-            - Player._OPPONENT_PIECE_WEIGHT * num_opponent_pieces
-            + Player._OWN_MOBILITY_WEIGHT * own_mobility
-            - Player._OPPONENT_MOBILITY_WEIGHT * opponent_mobility,
+            parameters[0] * num_own_pieces
+            + parameters[1] * num_opponent_pieces
+            + parameters[2] * own_mobility
+            + parameters[3] * opponent_mobility
+            + parameters[4] * own_avg_allied_distance
+            + parameters[5] * opponent_avg_allied_distance
+            + parameters[6] * own_avg_center_distance
+            + parameters[7] * opponent_avg_center_distance,
             Player._RATING_NUM_ROUNDING)
 
         # Return the score as is or negate, depending on the player.
