@@ -4,6 +4,7 @@ from typing import List, Tuple, Dict, Union
 from Classes.Board import Board
 from Classes.Delta import Delta
 from Classes.Pos2D import Pos2D
+from Classes.Square import Square
 from Enums.GamePhase import GamePhase
 from Enums.PlayerColor import PlayerColor
 from Misc.Utilities import Utilities as Utils
@@ -13,11 +14,15 @@ class Player():
     # --- Heuristic Weights ---
     # TODO: Consider if we should weigh own player's pieces higher than enemies's.
     _OWN_PIECE_WEIGHT: float = 1.0
-    _OPPONENT_PIECE_WEIGHT: float = 1.0
+    _OPPONENT_PIECE_WEIGHT: float = -1.0
 
     # Don't want to prioritize mobility over pieces, so it's much smaller.
     _OWN_MOBILITY_WEIGHT: float = 0.01
-    _OPPONENT_MOBILITY_WEIGHT: float = 0.01
+    _OPPONENT_MOBILITY_WEIGHT: float = -0.01
+
+    # TODO: How to balance cohesiveness and mobility? They're opposing, in a way.
+    _OWN_DIVIDED_WEIGHT: float = 0 # Bad to be divided. Want to be cohesive!
+    _OPPONENT_DIVIDED_WEIGHT: float = 0 # Good for opponent to be divided.
 
     # Heuristic score decimal place rounding. Used to prevent floating point
     # imprecision from interfering with move decisions.
@@ -32,7 +37,7 @@ class Player():
     _color: PlayerColor
     # The depth to go in each iteration of the iterative-deepening search
     # algorithm i.e. number of moves to look ahead.
-    _depth: int = 2
+    _depth: int = 1
 
     def __init__(self, color: str):
         """
@@ -185,23 +190,48 @@ class Player():
         Given a board, calculates and returns its rating based on heuristics.
         """
 
+        player_squares: List[Square] = board.get_player_squares(player)
+        opponent_squares: List[Square] = board.get_player_squares(player.opposite())
+
+        # -- Num pieces --
         # Calculate the number of white and black pieces. This is a very
         # important heuristic that will help prioritize preserving white's own
         # pieces and killing the enemy's black pieces.
-        num_own_pieces: int = len(board.get_player_squares(player))
-        num_opponent_pieces: int = len(board.get_player_squares(player.opposite()))
+        num_own_pieces: int = len(player_squares)
+        num_opponent_pieces: int = len(opponent_squares)
 
+        # -- Mobility --
         # Calculate the mobility for both white and black i.e. the number of
         # possible moves they can make.
         own_mobility: int = board.get_num_moves(player)
         opponent_mobility: int = board.get_num_moves(player.opposite())
 
+        # -- Cohesiveness --
+        own_total_distance: int = 0
+        opponent_total_distance: int = 0
+
+        displacement: Pos2D
+        for idx, square1 in enumerate(player_squares):
+            for square2 in player_squares[idx + 1:]:
+                displacement = square1.pos - square2.pos
+                own_total_distance += abs(displacement.x) + abs(displacement.y)
+
+        for idx, square1 in enumerate(opponent_squares):
+            for square2 in opponent_squares[idx + 1:]:
+                displacement = square1.pos - square2.pos
+                opponent_total_distance += abs(displacement.x) + abs(displacement.y)
+
+        own_avg_distance: float = own_total_distance / (num_own_pieces + 1)
+        opponent_avg_distance: float = opponent_total_distance / (num_opponent_pieces + 1)
+
         # Calculate the heuristic score/rating.
         rounded_heuristic_score: float = round(
             Player._OWN_PIECE_WEIGHT * num_own_pieces
-            - Player._OPPONENT_PIECE_WEIGHT * num_opponent_pieces
+            + Player._OPPONENT_PIECE_WEIGHT * num_opponent_pieces
             + Player._OWN_MOBILITY_WEIGHT * own_mobility
-            - Player._OPPONENT_MOBILITY_WEIGHT * opponent_mobility,
+            + Player._OPPONENT_MOBILITY_WEIGHT * opponent_mobility
+            + Player._OWN_DIVIDED_WEIGHT * own_avg_distance
+            + Player._OPPONENT_DIVIDED_WEIGHT * opponent_avg_distance,
             Player._RATING_NUM_ROUNDING)
 
         # Return the score as is or negate, depending on the player.
