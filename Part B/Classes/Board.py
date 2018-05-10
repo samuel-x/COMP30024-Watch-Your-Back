@@ -35,8 +35,10 @@ class Board():
     _BLACK_PLACEMENT_ZONE_CORNER_POSITIONS: List[Pos2D] = \
         [Pos2D(0, 2), Pos2D(_NUM_COLS, _NUM_ROWS)]
 
+    center_zone: List[Pos2D] = [Pos2D(_NUM_COLS % 2, _NUM_ROWS % 2), Pos2D(_NUM_COLS % 2, _NUM_ROWS % 2 + 1),
+                                Pos2D(_NUM_COLS % 2 + 1, _NUM_ROWS % 2), Pos2D(_NUM_COLS % 2 + 1, _NUM_ROWS % 2 + 1)]
 
-    _DEATH_ZONE_ROUNDS: List[int] = [151, 215]
+    death_zone_rounds: List[int] = [151, 215]
 
     # The minimum number of pieces a player can have on the board before they
     # lose.
@@ -123,7 +125,7 @@ class Board():
 
         potential_square_eliminations: List[Square] = []
         potential_new_corners: List[Square] = []
-        if (self.round_num in Board._DEATH_ZONE_ROUNDS):
+        if (self.round_num in Board.death_zone_rounds):
             (potential_square_eliminations, potential_new_corners) = \
                 self._get_death_zone_changes()
 
@@ -153,7 +155,7 @@ class Board():
             # Calculate kills that occur due to the change in corners
             # (if applicable).
             potential_corner_kills: List[Square] = []
-            if (self.round_num in Board._DEATH_ZONE_ROUNDS):
+            if (self.round_num in Board.death_zone_rounds):
                 assert(len(potential_new_corners) == 4)
 
                 for corner in potential_new_corners:
@@ -278,6 +280,19 @@ class Board():
         return [square for square in self.squares.values() if
                 square.state == SquareState.OCCUPIED
                 and square.occupant.owner == player]
+
+    def get_valid_block(self, pos: Pos2D, block_size: int=2) -> List[Pos2D]:
+        """
+        Returns a 2x2 Block of positions to be used in AlphaBetaPlayerTurtle
+        :param pos:
+        :return:
+        """
+        block_squares: List[Square] = [self.squares.get(pos)]
+        for row in range(1, block_size):
+            for col in range(1, block_size):
+                block_squares.append(self.squares.get(pos + Pos2D(row, col)))
+
+        return [square.pos for square in block_squares if square is not None]
 
     def _get_adjacent_squares(self, pos: Pos2D, direction: str = _OMNI) \
             -> List[Square]:
