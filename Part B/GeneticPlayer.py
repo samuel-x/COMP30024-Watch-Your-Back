@@ -25,7 +25,7 @@ class Player():
 
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
-    _SEED: int = 133
+    _SEED: int = 1337
 
     # A reference to the current board that the agent is on.
     _board: Board
@@ -34,7 +34,10 @@ class Player():
     # algorithm i.e. number of moves to look ahead.
     _depth: int = 1
 
-    def __init__(self, color: str):
+    def __init__(self, color: str, own_piece_weight: float,
+                 opponent_piece_weight: float,
+                 own_mobility_weight: float,
+                 opponent_mobility_weight: float):
         """
         TODO
         This method is called by the referee once at the beginning of the game to initialise
@@ -52,6 +55,11 @@ class Player():
             self._color = PlayerColor.WHITE
         else:
             self._color = PlayerColor.BLACK
+
+        Player._OWN_PIECE_WEIGHT = own_piece_weight
+        Player._OWN_MOBILITY_WEIGHT = opponent_piece_weight
+        Player._OPPONENT_PIECE_WEIGHT = own_mobility_weight
+        Player._OPPONENT_MOBILITY_WEIGHT = opponent_mobility_weight
 
         random.seed(Player._SEED)
 
@@ -88,7 +96,6 @@ class Player():
 
         self._board = self._board.get_next_board(best_delta[0])
 
-        print(self._color, "DOES", best_delta[0], "[{}]".format(best_delta[1]))
         return best_delta[0].get_referee_form()
 
     def update(self, action: Tuple[Union[int, Tuple[int]]]):
@@ -111,8 +118,6 @@ class Player():
         # Easiest way to generate a Delta from 'action' seems to be to use
         # board.get_valid_movements or board.get_valid_placements and then
         # "getting" the Delta being made by matching the Pos2Ds.
-
-        print(self._color, "SEES", action)
 
         if (action is None):
             # Opponent forfeited turn.
