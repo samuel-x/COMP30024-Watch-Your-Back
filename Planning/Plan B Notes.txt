@@ -15,10 +15,7 @@ Machine Learning
 Non-machine learning
 	Alpha-beta Pruning
 		Section 5.3 (pg 167) in AI book.
-		Work on a way to manage time.
-			Each round can spend REMAINING_TIME / num_expected_rounds
-			How to estimate num_expected rounds?
-			Once out of time, choose move with best alpha-beta value at that moment.
+		
 	SSS*
 		https://en.wikipedia.org/wiki/SSS*
 	Principal Variation Search aka NegaScout
@@ -75,3 +72,40 @@ Genetic Algorithm
 					Might lead to local minima. Consider the 42 -> 101010 stuff where each bit has a % chance of flipping.
 		Add new AI to new population.
 	4. Repeat step 2 onwards indefinitely.
+
+TODO:
+	1. Add more heuristics
+		- Cohesiveness
+			- Average distance to allied pieces
+			-  + WHITE_COHESIVENESS_WEIGHT * white_cohesiveness - BLACK_COHESIVENESS_WEIGHT * black_cohesiveness
+		- Mobility
+			- Number of available moves
+			- + WHITE_MOBILITY_WEIGHT * white_mobility - BLACK_MOBILITY_WEIGHT * black_mobility
+		- Center 4 spots
+			- Number of center spots held / 4
+			- + WHITE_CENTER_CONTROL_WEIGHT * white_center_control - BLACK_CENTER_CONTROL_WEIGHT * black_center_control
+
+	2. Implement genetic algorithm
+		- See "Genetic Algorithm" instructions above.
+		- Adapt referee.py to facilitate.
+		- Use threads e.g. every game is played on its own thread.
+		- Have a PlayerWrapper class to contain weights.
+		- Likely need to temporarly change Player class to allow for setting the weights, rather than them being hardcoded as they are now.
+
+	3. Comment.txt
+		- Talk about MCTS.
+		- Talk about Alpha-beta pruning.
+		- Talk about attempt (hopefully successful :P) at utilizing genetic algorithms for finding the best heuristic weights.
+
+	?. Depth depends on the time remaining.
+		- Each round can spend REMAINING_TIME / num_expected_rounds
+		- How to estimate num_expected rounds?
+			- Can hardcode at 200?
+		- Once out of time, choose move with best alpha-beta value at that moment.
+			- Or just decide "I don't have much time this round, I'll just 1 depth" or visa versa i.e. "I have lots of time this round, I'll use 2 depth"
+				- Base time thresholds off of observed max-expected time to make move e.g. "Depth 1 decisions take max 0.2 seconds" or "Depth 2 decisions take max 5 seconds"
+
+	?. Optimization
+		- Anything we can do to speed up the existing framework?
+		- Copying the board when using board.get_next_board() takes a lot of time.
+			- Unfortunately we're using Python so I don't know how much control we have over data types, but maybe it's possible to use smaller data types e.g. Pos2D only needs to contain values of 0 - 7.
