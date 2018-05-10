@@ -84,6 +84,9 @@ TODO:
 		- Center 4 spots
 			- Number of center spots held / 4
 			- + WHITE_CENTER_CONTROL_WEIGHT * white_center_control - BLACK_CENTER_CONTROL_WEIGHT * black_center_control
+		- ^ ALTERNATIVE: "Centrality"
+			- Average distance of pieces from mid-point i.e. Pos2D(3.5, 3.5)
+			- Want to decrease.
 
 	2. Implement genetic algorithm
 		- See "Genetic Algorithm" instructions above.
