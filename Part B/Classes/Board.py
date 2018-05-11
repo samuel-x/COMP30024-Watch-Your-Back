@@ -156,11 +156,21 @@ class Board():
             if (self.round_num in Board._DEATH_ZONE_ROUNDS):
                 assert(len(potential_new_corners) == 4)
 
+                adj_to_corner_squares: List[Square]
                 for corner in potential_new_corners:
+                    adj_to_corner_squares = self._get_adjacent_squares(corner.pos)
                     adj_occupied_squares: List[Square] = \
-                        [square for square in
-                         self._get_adjacent_squares(corner.pos) if
+                        [square for square in adj_to_corner_squares if
                          square.state == SquareState.OCCUPIED]
+
+                    # Determine of the move_target would be an adjacent
+                    # position as well (edge case).
+                    if (move_target in adj_to_corner_squares):
+                        move_target_copy: Square = copy(move_target)
+                        move_target_copy.occupant = move_origin.occupant
+                        move_target_copy.state = move_origin.state
+                        adj_occupied_squares.append(move_target_copy)
+
                     for adj_square in adj_occupied_squares:
                         opposite_square: Square = \
                             self.squares.get(self._get_opposite_pos(corner.pos,

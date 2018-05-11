@@ -44,7 +44,7 @@ def main():
     # Generate initial population.
     heuristic_weights: List[float]
     new_wrapper: PlayerWrapper
-    for i in range(N-1):
+    for i in range(N - 1):
         heuristic_weights = [random.uniform(-1, 1) for i in range(NUM_HEURISTIC_VALUES)]
         new_wrapper = PlayerWrapper(heuristic_weights)
         population[new_wrapper.id] = new_wrapper

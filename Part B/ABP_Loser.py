@@ -13,16 +13,19 @@ from Misc.Utilities import Utilities as Utils
 class Player():
     # --- Heuristic Weights ---
     # TODO: Consider if we should weigh own player's pieces higher than enemies's.
-    _OWN_PIECE_WEIGHT: float = 1
-    _OPPONENT_PIECE_WEIGHT: float = -1
+    _OWN_PIECE_WEIGHT: float = 0.467664
+    _OPPONENT_PIECE_WEIGHT: float = -0.333661
 
     # Don't want to prioritize mobility over pieces, so it's much smaller.
-    _OWN_MOBILITY_WEIGHT: float = 0.01
-    _OPPONENT_MOBILITY_WEIGHT: float = -0.01
+    _OWN_MOBILITY_WEIGHT: float = 0.165471
+    _OPPONENT_MOBILITY_WEIGHT: float = -0.289885
 
     # TODO: How to balance cohesiveness and mobility? They're opposing, in a way.
-    _OWN_DIVIDED_WEIGHT: float = 0 # Bad to be divided. Want to be cohesive!
-    _OPPONENT_DIVIDED_WEIGHT: float = 0 # Good for opponent to be divided.
+    _OWN_DIVIDED_WEIGHT: float = -0.001505 # Bad to be divided. Want to be cohesive!
+    _OPPONENT_DIVIDED_WEIGHT: float = 0.227813 # Good for opponent to be divided.
+
+    _OWN_NON_CENTRALITY_WEIGHT: float = 0.073482
+    _OPPONENT_NON_CENTRALITY_WEIGHT: float = 0.068577
 
     # Heuristic score decimal place rounding. Used to prevent floating point
     # imprecision from interfering with move decisions.
@@ -30,7 +33,7 @@ class Player():
 
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
-    _SEED: int = 22
+    _SEED: int = 1337
 
     # A reference to the current board that the agent is on.
     _board: Board
@@ -221,8 +224,31 @@ class Player():
                 displacement = square1.pos - square2.pos
                 opponent_total_distance += abs(displacement.x) + abs(displacement.y)
 
-        own_avg_distance: float = own_total_distance / (num_own_pieces + 1)
-        opponent_avg_distance: float = opponent_total_distance / (num_opponent_pieces + 1)
+        own_avg_allied_distance: float = own_total_distance / (
+                    num_own_pieces + 1)
+        opponent_avg_allied_distance: float = opponent_total_distance / (
+                num_opponent_pieces + 1)
+
+        # -- Centrality --
+        own_total_distance: int = 0
+        opponent_total_distance: int = 0
+
+        x_displacement: float
+        y_displacement: float
+        for square in player_squares:
+            x_displacement = 3.5 - square.pos.x
+            y_displacement = 3.5 - square.pos.y
+            own_total_distance += abs(x_displacement) + abs(y_displacement)
+
+        for square in opponent_squares:
+            x_displacement = 3.5 - square.pos.x
+            y_displacement = 3.5 - square.pos.y
+            opponent_total_distance += abs(x_displacement) + abs(y_displacement)
+
+        own_avg_center_distance: float = own_total_distance / (
+                    num_own_pieces + 1)
+        opponent_avg_center_distance: float = opponent_total_distance / (
+                num_opponent_pieces + 1)
 
         # Calculate the heuristic score/rating.
         rounded_heuristic_score: float = round(
@@ -230,8 +256,10 @@ class Player():
             + Player._OPPONENT_PIECE_WEIGHT * num_opponent_pieces
             + Player._OWN_MOBILITY_WEIGHT * own_mobility
             + Player._OPPONENT_MOBILITY_WEIGHT * opponent_mobility
-            + Player._OWN_DIVIDED_WEIGHT * own_avg_distance
-            + Player._OPPONENT_DIVIDED_WEIGHT * opponent_avg_distance,
+            + Player._OWN_DIVIDED_WEIGHT * own_avg_allied_distance
+            + Player._OPPONENT_DIVIDED_WEIGHT * opponent_avg_allied_distance
+            + Player._OWN_NON_CENTRALITY_WEIGHT * own_avg_center_distance
+            + Player._OPPONENT_NON_CENTRALITY_WEIGHT * opponent_avg_center_distance,
             Player._RATING_NUM_ROUNDING)
 
         # Return the score as is or negate, depending on the player.

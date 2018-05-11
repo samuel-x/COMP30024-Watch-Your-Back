@@ -13,19 +13,19 @@ from Misc.Utilities import Utilities as Utils
 class Player():
     # --- Heuristic Weights ---
     # TODO: Consider if we should weigh own player's pieces higher than enemies's.
-    _OWN_PIECE_WEIGHT: float = 1
-    _OPPONENT_PIECE_WEIGHT: float = -1
+    _OWN_PIECE_WEIGHT: float = 0.433738
+    _OPPONENT_PIECE_WEIGHT: float = -0.294967
 
     # Don't want to prioritize mobility over pieces, so it's much smaller.
-    _OWN_MOBILITY_WEIGHT: float = 0.01
-    _OPPONENT_MOBILITY_WEIGHT: float = -0.01
+    _OWN_MOBILITY_WEIGHT: float = 0.159301
+    _OPPONENT_MOBILITY_WEIGHT: float = -0.285003
 
     # TODO: How to balance cohesiveness and mobility? They're opposing, in a way.
-    _OWN_DIVIDED_WEIGHT: float = -0.001 # Bad to be divided. Want to be cohesive!
-    _OPPONENT_DIVIDED_WEIGHT: float = 0.001 # Good for opponent to be divided.
+    _OWN_DIVIDED_WEIGHT: float = -0.001494 # Bad to be divided. Want to be cohesive!
+    _OPPONENT_DIVIDED_WEIGHT: float = 0.228512 # Good for opponent to be divided.
 
-    _OWN_NON_CENTRALITY_WEIGHT: float = -0.005
-    _OPPONENT_NON_CENTRALITY_WEIGHT: float = 0.005
+    _OWN_NON_CENTRALITY_WEIGHT: float = 0.070378
+    _OPPONENT_NON_CENTRALITY_WEIGHT: float = 0.060941
 
     # Heuristic score decimal place rounding. Used to prevent floating point
     # imprecision from interfering with move decisions.
@@ -33,7 +33,7 @@ class Player():
 
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
-    _SEED: int = 133
+    _SEED: int = 1337
 
     # A reference to the current board that the agent is on.
     _board: Board
