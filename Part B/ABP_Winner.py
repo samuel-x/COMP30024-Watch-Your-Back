@@ -7,40 +7,54 @@ from Classes.Pos2D import Pos2D
 from Classes.Square import Square
 from Enums.GamePhase import GamePhase
 from Enums.PlayerColor import PlayerColor
+from Misc.Timer import Timer
 from Misc.Utilities import Utilities as Utils
 
 
 class Player():
     # --- Heuristic Weights ---
     # TODO: Consider if we should weigh own player's pieces higher than enemies's.
-    _OWN_PIECE_WEIGHT: float = 0.433738
-    _OPPONENT_PIECE_WEIGHT: float = -0.294967
+    _OWN_PIECE_WEIGHT: float = 1
+    _OPPONENT_PIECE_WEIGHT: float = -1
 
     # Don't want to prioritize mobility over pieces, so it's much smaller.
-    _OWN_MOBILITY_WEIGHT: float = 0.159301
-    _OPPONENT_MOBILITY_WEIGHT: float = -0.285003
+    _OWN_MOBILITY_WEIGHT: float = 0.01
+    _OPPONENT_MOBILITY_WEIGHT: float = -0.01
 
     # TODO: How to balance cohesiveness and mobility? They're opposing, in a way.
-    _OWN_DIVIDED_WEIGHT: float = -0.001494 # Bad to be divided. Want to be cohesive!
-    _OPPONENT_DIVIDED_WEIGHT: float = 0.228512 # Good for opponent to be divided.
+    _OWN_DIVIDED_WEIGHT: float = -0.001 # Bad to be divided. Want to be cohesive!
+    _OPPONENT_DIVIDED_WEIGHT: float = 0.001 # Good for opponent to be divided.
 
-    _OWN_NON_CENTRALITY_WEIGHT: float = 0.070378
-    _OPPONENT_NON_CENTRALITY_WEIGHT: float = 0.060941
+    _OWN_NON_CENTRALITY_WEIGHT: float = -0.005
+    _OPPONENT_NON_CENTRALITY_WEIGHT: float = 0.005
 
     # Heuristic score decimal place rounding. Used to prevent floating point
     # imprecision from interfering with move decisions.
     _RATING_NUM_ROUNDING: int = 10
 
+    # --- Timer parameters ---
+    # The total time for the player in the game.
+    _TIME_LIMIT: float = 120.0
+    # The remaining amount of time remaining at which point the AI will start
+    # picking moves completely randomly so as to not run out of time.
+    _PANIC_MODE_REMAINING_TIME: float = 2.0
+    # The amount of rounds expected to be played. Includes placement rounds and
+    # all rounds until around 2nd deathzone.
+    _NUM_EXPECTED_ROUNDS: int = 24 + 194
+    _DEPTH_TWO_EXPECTED_TURN_TIME: float = 200
+
+
+    # --- Other parameters ---
     _ALPHA_START_VALUE: int = -9999
     _BETA_START_VALUE: int = 9999
     _SEED: int = 1337
 
+    # --- Instance variables ---
     # A reference to the current board that the agent is on.
+    _timer: Timer
     _board: Board
     _color: PlayerColor
-    # The depth to go in each iteration of the iterative-deepening search
-    # algorithm i.e. number of moves to look ahead.
-    _depth: int = 1
+
 
     def __init__(self, color: str):
         """
@@ -62,8 +76,9 @@ class Player():
             self._color = PlayerColor.BLACK
 
         random.seed(Player._SEED)
+        self._timer = Timer(Player._TIME_LIMIT)
 
-    def action(self, turns) -> str:
+    def action(self, turns) -> Union[str, None]:
         """
         This method is called by the referee to request an action by your player.
         The input parameter turns is an integer representing the number of turns that have
@@ -75,29 +90,53 @@ class Player():
         and return it. Your player should represent this action based on the instructions
         below, in the ‘Representing actions’ section.
         """
+        with(self._timer):
+            deltas: List[Delta] = self._board.get_all_possible_deltas(self._color)
 
-        deltas: List[Delta] = self._board.get_all_possible_deltas(self._color)
-        delta_scores: Dict[Delta, float] = {}
+            if (len(deltas) == 0):
+                return None
 
-        for delta in deltas:
-            delta_scores[delta] = \
-                Player.get_alpha_beta_value(
-                    self._board.get_next_board(delta), Player._depth - 1,
-                    Player._ALPHA_START_VALUE,
-                    Player._BETA_START_VALUE, self._color.opposite())
+            remaining_time: float = self._timer.limit - self._timer.clock
+            if (remaining_time < Player._PANIC_MODE_REMAINING_TIME):
+                # AHH! Not much time remaining - pick a random move.
+                print(self._color, "PANIC")
+                random_delta: Delta = random.choice(deltas)
+                self._board = self._board.get_next_board(random_delta)
+                return random_delta.get_referee_form()
 
-        best_deltas: List[Delta] = Utils.get_best_deltas(delta_scores, self._color)
-        best_delta: Tuple[Delta, float]
-        if (len(best_deltas) > 1):
-            # There are more than one "best" deltas. Pick a random one.
-            best_delta = random.choice(list(best_deltas))
-        else:
-            best_delta = best_deltas[0]
+            # Determine the depth based on the amount of time remaining.
+            depth: int
+            remaining_expected_rounds: int = \
+                Player._NUM_EXPECTED_ROUNDS - self._board.round_num
+            remaining_expected_time_per_round: float = \
+                remaining_time / (remaining_expected_rounds + 10)
+            if (remaining_expected_time_per_round
+                    > Player._DEPTH_TWO_EXPECTED_TURN_TIME):
+                depth = 2
+            else:
+                depth = 1
 
-        self._board = self._board.get_next_board(best_delta[0])
+            print("Looking {} moves ahead!".format(depth))
+            delta_scores: Dict[Delta, float] = {}
+            for delta in deltas:
+                delta_scores[delta] = \
+                    Player.get_alpha_beta_value(
+                        self._board.get_next_board(delta), depth - 1,
+                        Player._ALPHA_START_VALUE,
+                        Player._BETA_START_VALUE, self._color)
 
-        print(self._color, "DOES", best_delta[0], "[{}]".format(best_delta[1]))
-        return best_delta[0].get_referee_form()
+            best_deltas: List[Delta] = Utils.get_best_deltas(delta_scores, self._color)
+            best_delta: Tuple[Delta, float]
+            if (len(best_deltas) > 1):
+                # There are more than one "best" deltas. Pick a random one.
+                best_delta = random.choice(list(best_deltas))
+            else:
+                best_delta = best_deltas[0]
+
+            self._board = self._board.get_next_board(best_delta[0])
+
+            print(self._color, "DOES", best_delta[0], "[{}]".format(best_delta[1]))
+            return best_delta[0].get_referee_form()
 
     def update(self, action: Tuple[Union[int, Tuple[int]]]):
         """
@@ -120,47 +159,48 @@ class Player():
         # board.get_valid_movements or board.get_valid_placements and then
         # "getting" the Delta being made by matching the Pos2Ds.
 
-        print(self._color, "SEES", action)
+        with self._timer:
+            print(self._color, "SEES", action)
 
-        if (action is None):
-            # Opponent forfeited turn.
-            self._board.round_num += 1
-            self._board._update_game_phase()
+            if (action is None):
+                # Opponent forfeited turn.
+                self._board.round_num += 1
+                self._board._update_game_phase()
 
-        positions: List[Pos2D]
+            positions: List[Pos2D]
 
-        if (type(action[0]) == int):
-            positions = [Pos2D(action[0], action[1])]
-        else:
-            positions = [Pos2D(x, y) for x, y in action]
+            if (type(action[0]) == int):
+                positions = [Pos2D(action[0], action[1])]
+            else:
+                positions = [Pos2D(x, y) for x, y in action]
 
-        opponent_delta: Delta = None
-        deltas: List[Delta]
-        if (len(positions) == 1):
-            # Placement
-            assert(self._board.phase == GamePhase.PLACEMENT)
+            opponent_delta: Delta = None
+            deltas: List[Delta]
+            if (len(positions) == 1):
+                # Placement
+                assert(self._board.phase == GamePhase.PLACEMENT)
 
-            deltas = self._board.get_possible_placements(self._color.opposite())
+                deltas = self._board.get_possible_placements(self._color.opposite())
 
-            for delta in deltas:
-                if delta.move_target.pos == positions[0]:
-                    opponent_delta = delta
-                    break
+                for delta in deltas:
+                    if delta.move_target.pos == positions[0]:
+                        opponent_delta = delta
+                        break
 
-        elif (len(positions) == 2):
-            # Movement.
-            assert(self._board.phase == GamePhase.MOVEMENT)
+            elif (len(positions) == 2):
+                # Movement.
+                assert(self._board.phase == GamePhase.MOVEMENT)
 
-            deltas = self._board.get_possible_moves(positions[0])
+                deltas = self._board.get_possible_moves(positions[0])
 
-            for delta in deltas:
-                if delta.move_target.pos == positions[1]:
-                    opponent_delta = delta
-                    break
+                for delta in deltas:
+                    if delta.move_target.pos == positions[1]:
+                        opponent_delta = delta
+                        break
 
-        assert(opponent_delta is not None)
+            assert(opponent_delta is not None)
 
-        self._board = self._board.get_next_board(opponent_delta)
+            self._board = self._board.get_next_board(opponent_delta)
 
     @staticmethod
     def get_alpha_beta_value(board: Board, depth: int, alpha: float, beta: float, color: PlayerColor) -> float:
@@ -168,7 +208,7 @@ class Player():
             return Player.get_heuristic_value(board, color)
 
         if (color == PlayerColor.WHITE): # Maximizer
-            v: float = -999999
+            v: float = Player._ALPHA_START_VALUE
             deltas: List[Delta] = board.get_all_possible_deltas(color)
             for delta in deltas:
                 v = max(v, Player.get_alpha_beta_value(board.get_next_board(delta), depth - 1, alpha, beta, color.opposite()))
@@ -178,7 +218,7 @@ class Player():
             return v
 
         else: # Minimizer
-            v = 999999
+            v = Player._BETA_START_VALUE
             deltas: List[Delta] = board.get_all_possible_deltas(color)
             for delta in deltas:
                 v = min(v, Player.get_alpha_beta_value(board.get_next_board(delta), depth - 1, alpha, beta, color.opposite()))

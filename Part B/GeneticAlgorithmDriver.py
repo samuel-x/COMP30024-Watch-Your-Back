@@ -28,13 +28,13 @@ Run `python referee.py -h` for help and additional usage information
 def main():
     SEED: int = 33
     random.seed(SEED)
-    time_out: float = 20.0
+    time_out: float = 10.0
     MAX_TIMEOUT: float = 60.0
     ARTIFICIAL_HEURISTICS = [1, -1, 0.01, -0.01, -0.001, 0.001, -0.005, 0.005]
 
-    N: int = 20 # Population size.
+    N: int = 10 # Population size.
     NUM_HEURISTIC_VALUES: int = 8 # Number of heuristic values.
-    NUM_GAMES_PER_GENERATION: int = 400
+    NUM_GAMES_PER_GENERATION: int = 100
     NUM_GAMES_PER_PLAYER_PER_GENERATION = round_even(NUM_GAMES_PER_GENERATION / (N * (N - 1) / 2))
     NUM_PARENTS: int = 3
     MUTATION_RATE: float = 0.05
@@ -673,7 +673,7 @@ class _Game:
         """
         Check the board to see if the game has concluded.
 
-        Count the number of pieces remaining for each player: if either player 
+        Count the number of pieces remaining for each player: if either player
         has run out of pieces, decide the winner and transition to the 
         'completed' state
         """
@@ -741,7 +741,7 @@ class _Game:
 
     def _eliminate_about(self, square):
         """
-        A piece has entered this square: look around to eliminate adjacent 
+        A piece has entered this square: look around to eliminate adjacent
         (surrounded) enemy pieces, then possibly eliminate this piece too.
         
         :param square: the square to look around

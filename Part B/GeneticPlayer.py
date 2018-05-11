@@ -88,7 +88,7 @@ class Player():
                 Player.get_alpha_beta_value(
                     self._board.get_next_board(delta), Player._depth - 1,
                     Player._ALPHA_START_VALUE,
-                    Player._BETA_START_VALUE, self._color.opposite(), self.parameters)
+                    Player._BETA_START_VALUE, self._color, self.parameters)
 
         best_deltas: List[Delta] = Utils.get_best_deltas(delta_scores, self._color)
         best_delta: Tuple[Delta, float]
@@ -155,7 +155,12 @@ class Player():
 
         elif (len(positions) == 2):
             # Movement.
-            assert(self._board.phase == GamePhase.MOVEMENT)
+            try:
+                assert(self._board.phase == GamePhase.MOVEMENT)
+            except AssertionError:
+                print("WARNING: 'assert(self._board.phase == GamePhase.MOVEMENT)' FAILED.'")
+                print("SETTING PHASE = GAMEPHASE.MOVEMENT.")
+                self._board.phase = GamePhase.MOVEMENT
 
             deltas = self._board.get_possible_moves(positions[0])
 
