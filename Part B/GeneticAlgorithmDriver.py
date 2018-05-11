@@ -26,13 +26,13 @@ Run `python referee.py -h` for help and additional usage information
 """
 
 def main():
-    SEED: int = 33
+    SEED: int = 3333
     random.seed(SEED)
     time_out: float = 10.0
     MAX_TIMEOUT: float = 60.0
     ARTIFICIAL_HEURISTICS = [1, -1, 0.01, -0.01, -0.001, 0.001, -0.005, 0.005]
 
-    N: int = 10 # Population size.
+    N: int = 16 # Population size.
     NUM_HEURISTIC_VALUES: int = 8 # Number of heuristic values.
     NUM_GAMES_PER_GENERATION: int = 100
     NUM_GAMES_PER_PLAYER_PER_GENERATION = round_even(NUM_GAMES_PER_GENERATION / (N * (N - 1) / 2))

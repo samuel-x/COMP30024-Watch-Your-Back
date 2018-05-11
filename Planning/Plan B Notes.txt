@@ -127,4 +127,4 @@ TODO 2:
 		- Talk about attempt (hopefully successful :P) at utilizing genetic algorithms for finding the best heuristic weights.
 			- Talk about bugs
 			- Needing more time to get successful runs.
-			- Ultimately served well in terms of finding bugs as 1000s of games were run and edge cases were discovered that we were not likely to find 
+			- Ultimately served well in terms of finding bugs as 1000s of games were run and edge cases were discovered that we were not likely to find otherwise.
