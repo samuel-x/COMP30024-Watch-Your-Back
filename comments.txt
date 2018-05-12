@@ -1,0 +1,49 @@
+Describing your program
+
+In addition to implementing a Player class, you must write and submit a text file called
+comments.txt (case-sensitive) describing your game playing program:
+	Briefly describe the structure of your solution in terms of the major modules and
+	classes you have created and used.
+Describe the approach taken by your game playing program for deciding on which
+actions to take, in terms of
+	o your search strategy,
+	o your evaluation function, and
+	o any creative techniques that you have applied, for example, machine
+	  learning, search strategy optimisations, specialised data structures, other
+	  optimisations, or any search algorithms not discussed in the lectures.
+	  If you have applied machine learning, you should discuss the learning techniques
+	  methodology you followed for training the agent, and the intuition behind using that
+	  specific technique.
+Include any other creative aspects of your solution, and any additional comments
+you want to be considered by the markers.
+
+	In addition, while working on your project, you may have built extra files to assist with your
+	project. For example, you may have created alternative Player classes, a modified
+	referee, additional programs to test your player or its strategy, programs to create training
+	data for machine learning, or programs for any other purpose not directly related to
+	implementing your Player class. All of these files are worth including when you submit
+	your work, and should also be described in your comments.txt file.
+	Finally, if you have implemented multiple Player classes, please tell us very clearly
+	the location of the Player class you would like us to test and mark by including a
+	note near the top of your comments.txt file. Specifically, please tell us which Python file
+	or module this class is contained within. This will ensure that we can test the correct player
+	while marking your project.
+
+--------------------------------------------------------------------------------------------------
+
+- Folders to include:
+	- Project with MCTS simulation functioning.
+	- Project genetic algorithm functioning.
+	- Project with the final submission i.e. just the player classes with final parameters to be tested.
+
+- Plan:
+	-Talk about MCTS.
+	 Talk about Alpha-beta pruning.
+	 Talk about attempt (hopefully successful :P) at utilizing genetic algorithms for finding the best heuristic weights.
+	 	- Talk about motivation.
+		- Talk about how we used a modified player class that was capable of 
+	 	- Talk about pitfalls.
+			- Talk about bugs
+			- Needing more time to get successful runs.
+		- Ultimately served well in terms of finding bugs as 1000s of games were run and edge cases were discovered that we were not likely to find otherwise.
+
