@@ -3,7 +3,7 @@
 =======================================================
 
 This is the main project for the course COMP30024 Artificial Intelligence at The University of Melbourne Semester 1, 2018.
-The project consisted of a game playing agent written in Python 3.6 that would be able to play the game "Watch Your Back!": a board game not unlike checkers. The [rules of the game can be found here](https://github.com/samuel-x/Watch-Your-Back/blob/master/rules.pdf). Similarly to the project in COMP10001 Foundations of Computing, a portion of the marks would be given depending on how well your agent played against other players. 
+The project consisted of a game playing agent written in Python 3.6 that would be able to play the game "Watch Your Back!": a board game not unlike checkers. The [rules of the game can be found here](https://github.com/samuel-x/Watch-Your-Back/blob/master/rules.pdf). Similar to the project in COMP10001 Foundations of Computing, a portion of the marks would be given depending on how well your agent played against other players. 
 
 More information about the game can be found in the [Part A Spec](https://github.com/samuel-x/Watch-Your-Back/blob/master/Part%20A%20Spec.pdf) and the [Part B Spec](https://github.com/samuel-x/Watch-Your-Back/blob/master/Part%20B%20Spec.pdf).
 
