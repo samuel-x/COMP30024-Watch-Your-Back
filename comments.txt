@@ -1,49 +1,65 @@
-Describing your program
+Our submission contains three folders.
+MCTS:
+	A version containing the MCTS learner, as described below. Can be run, constucting a MCTS tree.
 
-In addition to implementing a Player class, you must write and submit a text file called
-comments.txt (case-sensitive) describing your game playing program:
-	Briefly describe the structure of your solution in terms of the major modules and
-	classes you have created and used.
-Describe the approach taken by your game playing program for deciding on which
-actions to take, in terms of
-	o your search strategy,
-	o your evaluation function, and
-	o any creative techniques that you have applied, for example, machine
-	  learning, search strategy optimisations, specialised data structures, other
-	  optimisations, or any search algorithms not discussed in the lectures.
-	  If you have applied machine learning, you should discuss the learning techniques
-	  methodology you followed for training the agent, and the intuition behind using that
-	  specific technique.
-Include any other creative aspects of your solution, and any additional comments
-you want to be considered by the markers.
+Genetic:
+	A version containing the genetic learner, as described below. Run main in GeneticAlgorithmDriver.py.
 
-	In addition, while working on your project, you may have built extra files to assist with your
-	project. For example, you may have created alternative Player classes, a modified
-	referee, additional programs to test your player or its strategy, programs to create training
-	data for machine learning, or programs for any other purpose not directly related to
-	implementing your Player class. All of these files are worth including when you submit
-	your work, and should also be described in your comments.txt file.
-	Finally, if you have implemented multiple Player classes, please tell us very clearly
-	the location of the Player class you would like us to test and mark by including a
-	note near the top of your comments.txt file. Specifically, please tell us which Python file
-	or module this class is contained within. This will ensure that we can test the correct player
-	while marking your project.
+Clean *TEST THIS*:
+	The final version with the Player class contained inside the ABP_Default.py file.
 
---------------------------------------------------------------------------------------------------
+The major modules are very similar to what they were in our Part A solution. This is largely because we initially wrote the framework for Part A to the point where it could (mostly) follow the rules and play versus itself, though there were a few bugs resulting in the occasional move, etc. We had then "cut down" this framework and altered it so as to only contain what was required to fulfill the Part A spec.
+At the beginning of Part B, we brought back the framework we had written before it was "cut down" (thanks to Git). To re-iterate, we went for a very object-oriented approach. Our most major class is the 'Board' class, which contains the internal representation for the game board as well as handling most of the logic and providing helper functions. Other classes include Squares, Pos2D to represent 2D board positions, Timer to keep track of processing time spent, and a collection of enums including GamePhase, PlayerColor, SquareState (e.g. OPEN, OCCUPIED, CORNER, ELIMINATED). Organizing the code into these various classes helps to reduce the coupling. These are the base classes used in implementing the Player class. As explored later, other classes were written along the way in reaching the final Player submission.
+The search strategy our player utilizes is Alpha-Beta pruning. The white player tries to maximize its the heuristic board score and while the black player tries to minimize it. Implementing the alpha-beta process was simple enough, however, the real challange came from extranious challenges such as the time constraint and trying to find the best weight values for the heuristic scoring function.
+The heuristic scoring function is of the following form:
 
-- Folders to include:
-	- Project with MCTS simulation functioning.
-	- Project genetic algorithm functioning.
-	- Project with the final submission i.e. just the player classes with final parameters to be tested.
+	h(board) = w1 * h1 + w2 * h2 + w3 * h3 + w4 * h4 + w5 * h5 + w6 * h6 + w7 * h7 + w8 * h8
 
-- Plan:
-	-Talk about MCTS.
-	 Talk about Alpha-beta pruning.
-	 Talk about attempt (hopefully successful :P) at utilizing genetic algorithms for finding the best heuristic weights.
-	 	- Talk about motivation.
-		- Talk about how we used a modified player class that was capable of 
-	 	- Talk about pitfalls.
-			- Talk about bugs
-			- Needing more time to get successful runs.
-		- Ultimately served well in terms of finding bugs as 1000s of games were run and edge cases were discovered that we were not likely to find otherwise.
+where 'wi' represents a weight and 'hi' represents a calculated heuristic. The heuristics we came to at the end were as follows:
 
+h1: Number of own pieces
+h2: Number of opponent pieces
+h3: Number of own possible moves (Own mobility)
+h4: Number of opponent possible moves (Opponent mobility)
+h5: Average distance between own pieces (Own incohesiveness)
+h6: Average distance between opponent pieces (Opponent incohesiveness)
+h7: Average distance of own pieces from center (3.5, 3.5) (Own decentrality)
+h8: Average distance of opponent pieces from center (3.5, 3.5) (Opponent decentrality)
+
+As mentioned earlier, the real challenge and most time-consuming part for us was to find the best weights [w1 ... w8] to utilize, or how to best prioritize the various heuristics. And interesting idea that we came upon was the idea of "Genetic Algorithms" which could be used to "discover" optimal weights through a process akin to evolution and natural selection. In the hopes that this could assist us in finding the best weights, we decided to implement a genetic algorithm. The general process in how we implemented it is as follows:
+
+1. Generate population of size N
+	- In our case, generate N collections of random weights for our heuristic.
+
+2. Calculate fitness for N elements
+	- Fitness function
+		- Define num_games
+		- Each AI plays floor(num_games / (n * (n - 1) / 2)) games vs every other AI (usually 2, one on each side).
+		- Fitness function(AI) = AI.win_rate
+	- Apply fitness function to each AI
+
+3. Reproduction / Selection
+	- Pick parents
+		- Pick 3 parents
+		- Assign each AI a % parent probability based off of fitness score. e.g. if scores are [0.6, 0.6, 0.2, 0] -> [score / score_sum for score in [0.6, 0.6, 0.2, 0]] -> ~[0.429, 0.429, 0.143, 0.0] -sum> 1.0
+	Make new AI
+		- Crossover
+			- Average heuristic weights together of the 3 weighted-randomly picked parents.
+		- Mutation
+			- mutation_rate = 0.05 i.e. 5%
+			- Take cross-over'd child value and multiply by random.uniform(0.95, 1.05)
+	- Add new AI to new population.
+4. Repeat step 2 onwards indefinitely.
+
+We did this by adapting the referee.py code given to us (thanks!) as it could faciltate step 2 of playing matches between AI in the generated population. When run, we'd usually have a population of around 10 - 20, resulting in 90 - 380 games played per generation. Even with depth=1 in the alpha-beta pruning algorithm, this would take quite a while. Additionally, we'd ideally have more than 20 players in a given population, perhaps along the line of 50; however this would result in 2450 games being played per generation which, at our speeds, was unfortunately impractical. For this reason, we also did not set depth=2 for when we'd run the genetic algorithm as it'd simply take far, far too long for reasonably sized populations.
+Another thing we did to implement the genetic algorithm was to create a version of the Player class ("GeneticPlayer") that did not have the weights hard-coded. Instead, it would take the weights as a parameter through its __init__() method. This was key in allowing us to create lots of players with different heuristics.
+Unfortunately, we don't believe the genetic algorithm approach was successful in its goal of finding optimal weights. Prior to implementing the algorithm, we had used our own logic to "think up" what good weights would be, namely [w1...w8] = [1, -1, 0.01, -0.01, -0.001, 0.001, -0.005, 0.005]. The logic was that the heuristics are important in the order of:
+
+	h1 == h2 > h3 == h4 > h7 == h8 > h5 == h6
+
+Unfortunately, the genetic algorithm, after numerous generations were run multiple times, was never able to produce a set of weights that would reliably beat the weights we had come up with. However, it is work noting that that went both ways. The weights that the genetic algorithm came up with were ultimately on-par with what we had come up with ourselves, as winrates were consistently 50 - 50. This implies that the genetic algorithm is capable of producing at least close to "optimal" weights; it just happens that we had come up with an on-par set of weights before we had even implemented the genetic algorithm. This is the reason that we say that the genetic algorithm approach was ultimately unsuccessful, as it took a lot of time and debugging to get working properly, only to have it confirm that our custom set of weights was "near-optimal", rather than providing better ones.
+However, it wasn't a complete waste of time. Due to the nature of the genetic algorithm, namely that it involves playing thousands of games, we were able to find a lot of bugs in our player's logic, particularly in Board.py. By running many generations with the genetic alrogithm and thus many games, numerous bugs, particularly due to edge cases, were discovered. This can likely be attributed to the large variety of different AI (particularly early on due to the random weights) playing the game and discovering bugs that we likely would not have dicovered otherwise.
+
+Another approach that we tried early on was to implement the Monte Carlo Search Tree. Our idea was that we could run these Monte Carlo simulations for extended periods of time over night and then store the resulting tree in a file that could then be read in by the Player when it needs to play and then it can follow this tree for the best possible moves. However, this did not work out either. Unfortunately, the MCTS algorithm ran both too slowly and took too much memory, reaching gigabytes worth of memory after a few hours. Initially it was increasing its memory usage by 10MB/s when learning. However, after numerous optimizations, we were able to reduce it down to 0.5MB/s. However, this was still far too much memory. Ultimately, MCTS did not seem feasible in our situation, and that was when we decided to move onto alpha-beta pruning instead, as it showed a quicker adoption of intelligent play, with a more reasonable resource cost.
+
+Ultimately, there are many more things we would have very much liked to have attempted, but that time wouldn't allow.
