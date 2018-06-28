@@ -90,6 +90,12 @@ class Player():
                     Player._ALPHA_START_VALUE,
                     Player._BETA_START_VALUE, self._color, self.parameters)
 
+        if self._board.round_num > 0 and \
+                self._board.phase == GamePhase.PLACEMENT:
+            test = {k: v for k, v in delta_scores.items() if
+                    (not self._board.is_suicide(k))}
+            delta_scores = test
+
         best_deltas: List[Delta] = Utils.get_best_deltas(delta_scores, self._color)
         best_delta: Tuple[Delta, float]
         if (len(best_deltas) > 1):

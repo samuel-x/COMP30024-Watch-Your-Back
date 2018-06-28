@@ -114,6 +114,41 @@ class Board():
                       self._get_killed_positions(Piece(player), square.pos), [],
                       []) for square in valid_squares]
 
+    def is_suicide(self, delta: Delta) -> bool:
+        """
+        Checks if a move will result in death during placement phase.
+        It does this by checking if there is a corner or enemy player
+        next to the position and then checks the corresponding opposite square
+        if it is not your own.
+        :param delta:
+        :return:
+        """
+        # Get our adjacent squares
+        adj_squares: List[Square] = \
+            self._get_adjacent_squares(delta.move_target.pos)
+        for adj_square in adj_squares:
+            # Don't place next to corners.
+            if (adj_square.state == SquareState.CORNER):
+                return True
+
+            if adj_square.state == SquareState.OCCUPIED and \
+                    adj_square.occupant.owner == delta.player.opposite():
+                opposite_square: Square = \
+                    self.squares.get(Board._get_opposite_pos(
+                        delta.move_target.pos, adj_square.pos), None)
+
+                # Enemy is on edge, we're away from edge. That's suicide.
+                if (opposite_square is None):
+                    return True
+
+                # If the opposite piece is not our own then it's a suicide
+                if (opposite_square.state == SquareState.OCCUPIED and
+                    opposite_square.occupant.owner != delta.player) and \
+                        (opposite_square.state != SquareState.CORNER):
+                    return True
+
+        return False
+
     def get_possible_moves(self, pos: Pos2D) -> List[Delta]:
         """
         Given a position on the board, returns a list of possible moves (or
